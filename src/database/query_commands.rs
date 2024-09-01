@@ -1,4 +1,5 @@
 use rusqlite::{Connection, Result};
+#[allow(dead_code)]
 
 pub fn query_dishes(conn: Connection) -> Result<()> {
     let mut statement = conn.prepare("Select id, name FROM dishes")?;
