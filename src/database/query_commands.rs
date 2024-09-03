@@ -1,7 +1,7 @@
 use rusqlite::{Connection, Result};
 #[allow(dead_code)]
 
-pub fn query_dishes(conn: Connection) -> Result<()> {
+pub fn query_all_dishes(conn: Connection) -> Result<()> {
     let mut statement = conn.prepare("Select id, name FROM dishes")?;
     let dish_iter = statement.query_map([], |row| {
         Ok((row.get::<_, i32>(0)?, row.get::<_, String>(1)?))
@@ -15,7 +15,7 @@ pub fn query_dishes(conn: Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_recipes(conn: Connection, dish_name: &str) -> Result<()> {
+pub fn query_recipe(dish_name: &str, conn: &Connection) -> Result<()> {
     let mut ingredients: Vec<String> = Vec::new();
 
     let mut get_dish_id = conn.prepare("SELECT id FROM dishes WHERE name = ?1;")?;
@@ -39,7 +39,7 @@ pub fn query_recipes(conn: Connection, dish_name: &str) -> Result<()> {
         }
     }
 
-    println!("{dish_name}");
+    println!("Recipe for {dish_name}:");
     for name in ingredients {
         println!("- {name}");
     }

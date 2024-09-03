@@ -1,11 +1,18 @@
-mod database;
+pub mod database;
+pub mod cli_operations;
 
-use database::query_commands::query_recipes;
+use std::io;
+
+use cli_operations::match_commands;
 use database::connection::get_connection;
 
 fn main() {
     let path: String = "d:\\lyns0\\Dev\\Database\\project_kechi.db".to_string();
     let connection = get_connection(&path);
-    query_recipes(connection, "Fried egg")
-        .expect("Error querying recipes");
+    let mut user_input = String::new();
+    println!("Arino v0.1");
+    io::stdin().read_line(&mut user_input)
+        .expect("Error reading user input");
+    match_commands::match_commands(user_input, &connection)
+        .expect("Error matching commands");
 }
