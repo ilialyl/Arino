@@ -3,7 +3,7 @@ pub mod cli_operations;
 
 use std::io;
 
-use cli_operations::match_commands;
+use cli_operations::user_input;
 use database::connection::get_connection;
 
 fn main() {
@@ -13,6 +13,6 @@ fn main() {
     println!("Arino v0.1");
     io::stdin().read_line(&mut user_input)
         .expect("Error reading user input");
-    match_commands::match_commands(user_input, &connection)
+    user_input::match_commands(user_input, &connection)
         .expect("Error matching commands");
 }
