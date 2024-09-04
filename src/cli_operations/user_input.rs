@@ -1,4 +1,5 @@
 use rusqlite::Connection;
+use database::query_commands;
 use crate::database;
 
 pub fn match_commands(user_input: String, conn: &Connection) {
@@ -7,7 +8,9 @@ pub fn match_commands(user_input: String, conn: &Connection) {
     let argument = user_input.next();
 
     match command.trim() {
-        "recipe" => database::query_commands::query_recipe(argument, conn).expect("This dish does not exist in database"),
+        "dish all" => query_commands::query_all_dishes(conn).expect("database error"),
+        "recipe" => query_commands::query_recipe(argument, conn).expect("database error"),
+        "ingredient all" => query_commands::query_all_ingredients(conn).expect("database error"),
         "quit" => std::process::exit(0),
         _ => eprintln!("Unknown command"),
     }

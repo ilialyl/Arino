@@ -15,7 +15,7 @@ fn main() {
     println!("Arino v0.1");
     loop {
         let mut user_input = String::new();
-        print!(">");
+        print!("> ");
         flush();
         io::stdin().read_line(&mut user_input)
             .expect("Error reading user input");
