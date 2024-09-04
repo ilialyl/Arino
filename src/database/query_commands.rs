@@ -15,13 +15,30 @@ pub fn query_all_dishes(conn: Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_recipe(dish_name: &str, conn: &Connection) -> Result<()> {
+pub fn query_recipe(dish_name: Option<&str>, conn: &Connection) -> Result<()> {
+    let dish_name = match dish_name {
+        Some(s) => s,
+        None => {
+            eprintln!("Dish name not input for recipe query");
+            return Ok(());
+        }
+    };
+
     let mut ingredient_list: Vec<String> = Vec::new();
 
     let mut dish_id_query = conn.prepare("SELECT id FROM dishes WHERE name = ?1;")?;
-    let dish_id: u32 = dish_id_query.query_row([dish_name], |row| {
+    let dish_id: Result<u32> = dish_id_query.query_row([dish_name], |row| {
         row.get(0)
-    })?;
+    });
+
+    let dish_id = match dish_id {
+        Ok(id) => id,
+        Err(rusqlite::Error::QueryReturnedNoRows) => {
+            eprintln!("Dish name '{}' not found in the database.", dish_name);
+            return Ok(());
+        }
+        Err(e) => return Err(e),
+    };
     
     let mut ingredient_id_query = conn.prepare("SELECT ingredient_id FROM recipes WHERE dish_id = ?1;")?;
     let ingredient_id_iter = ingredient_id_query.query_map([dish_id], |row| {

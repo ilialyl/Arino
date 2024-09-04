@@ -18,8 +18,7 @@ fn main() {
         print!(">");
         flush();
         io::stdin().read_line(&mut user_input)
-        .expect("Error reading user input");
-        user_input::match_commands(user_input, &connection)
-        .expect("Error matching commands");
+            .expect("Error reading user input");
+        user_input::match_commands(user_input, &connection);
     }
 }
