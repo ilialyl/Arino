@@ -16,14 +16,17 @@ pub fn query_all_dishes(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
-    if arg_list.is_empty() {
+/* pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
+    let ingredient_list = arg_list;
+    if ingredient_list.is_empty() {
         eprintln!("No ingredient input for dish query");
         return Ok(());
     }
+
+    
     
     Ok(())
-}
+} */
 
 pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     if arg_list.is_empty() {
@@ -32,8 +35,6 @@ pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     }
 
     let dish_name = &arg_list[0];
-
-    let mut ingredient_list: Vec<String> = Vec::new();
 
     let mut dish_id_query = conn.prepare("SELECT id FROM dishes WHERE name = ?1;")?;
     let dish_id: Result<u32> = dish_id_query.query_row([dish_name], |row| {
@@ -51,23 +52,34 @@ pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     
     let mut ingredient_id_query = conn.prepare("SELECT ingredient_id FROM recipes WHERE dish_id = ?1;")?;
     let ingredient_id_iter = ingredient_id_query.query_map([dish_id], |row| {
-        Ok(row.get::<_, i32>(0)?)
+        Ok(row.get::<_, u32>(0)?)
     })?;
 
-    for id in ingredient_id_iter {
-        let mut ingredient_names_query = conn.prepare("SELECT name FROM ingredients WHERE id = ?1;")?;
-        let ingredient_names_iter = ingredient_names_query.query_map([id?], |row| {
-            Ok(row.get::<_, String>(0)?)
-        })?;
+    let mut ingredient_names: Vec<String> = Vec::new();
+    let mut ingredient_quantity: Vec<u32> = Vec::new();
 
-        for ingredient_name in ingredient_names_iter {
-            ingredient_list.push(ingredient_name?);
-        }
+    for ingredient_id in ingredient_id_iter {
+        let ingredient_id = ingredient_id?;
+        let ingredient_name_query: String = conn.query_row(
+            "SELECT name FROM ingredients WHERE id = ?1;",
+            [ingredient_id],
+            |row| row.get(0),
+        )?;
+
+        ingredient_names.push(ingredient_name_query);
+
+        let ingredient_quantity_query: u32 = conn.query_row(
+            "SELECT quantity FROM recipes WHERE dish_id = ?1 AND ingredient_id = ?2;",
+            [dish_id, ingredient_id],
+            |row| row.get(0),
+        )?;
+            
+        ingredient_quantity.push(ingredient_quantity_query);
     }
 
     println!("Recipe for {dish_name}:");
-    for ingredient_name in ingredient_list {
-        println!("- {ingredient_name}");
+    for (name, quantity) in ingredient_names.iter().zip(ingredient_quantity.iter()) {
+        println!("- {name} ({quantity})");
     }
 
     Ok(())
