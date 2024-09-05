@@ -16,14 +16,22 @@ pub fn query_all_dishes(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_recipe(dish_name: Option<&str>, conn: &Connection) -> Result<()> {
-    let dish_name = match dish_name {
-        Some(s) => s,
-        None => {
-            eprintln!("Dish name not input for recipe query");
-            return Ok(());
-        }
-    };
+pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
+    if arg_list.is_empty() {
+        eprintln!("No ingredient input for dish query");
+        return Ok(());
+    }
+    
+    Ok(())
+}
+
+pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
+    if arg_list.is_empty() {
+        eprintln!("No dish name input for recipe query");
+        return Ok(());
+    }
+
+    let dish_name = &arg_list[0];
 
     let mut ingredient_list: Vec<String> = Vec::new();
 
