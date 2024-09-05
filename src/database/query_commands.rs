@@ -1,5 +1,6 @@
 use rusqlite::{Connection, Result};
 use crate::helper::calculate_mean;
+use prettytable::{Table, Row, Cell};
 #[allow(dead_code)]
 
 pub fn query_all_dishes(conn: &Connection) -> Result<()> {
@@ -98,13 +99,13 @@ pub fn query_all_ingredients (conn: &Connection) -> Result<()> {
             Ok(row.get::<_, f32>(0)?)
         });
 
-        let prices_iter = match prices_iter {
+        /* let prices_iter = match prices_iter {
             Ok(prices_iter) => prices_iter,
             Err(_) => {
                 println!("ID {ingredient_id}: {name} ({lifespan}) (no data)");
                 return Ok(());
             }
-        };
+        }; */
 
         let mut prices: Vec<f32> = Vec::new();
 
@@ -114,7 +115,7 @@ pub fn query_all_ingredients (conn: &Connection) -> Result<()> {
 
         let mean_price = calculate_mean(prices);
 
-        println!("ID {ingredient_id}: {name} ({lifespan}) (${mean_price})");
+        println!("ID {ingredient_id}: {name} ({lifespan}) (${mean_price:.2})");
     }
 
     Ok(())
