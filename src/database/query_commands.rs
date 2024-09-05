@@ -78,10 +78,20 @@ pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
         ingredient_quantity.push(ingredient_quantity_query);
     }
 
+    println!("{}", "-".repeat(50));
     println!("Recipe for {dish_name}:");
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![
+        Cell::new("Name"),
+        Cell::new("Quantity"),
+    ]));
     for (name, quantity) in ingredient_names.iter().zip(ingredient_quantity.iter()) {
-        println!("- {name} ({quantity})");
+        table.add_row(Row::new(vec![
+            Cell::new(&name),
+            Cell::new(quantity.to_string().trim()),
+        ]));
     }
+    table.printstd();
 
     Ok(())
 }
@@ -92,12 +102,20 @@ pub fn query_all_ingredients (conn: &Connection) -> Result<()> {
         Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))
     })?;
 
+    let mut table = Table::new();
+    table.add_row(Row::new(vec![
+        Cell::new("ID"),
+        Cell::new("Name"),
+        Cell::new("Lifespan"),
+        Cell::new("Price"),
+    ]));
+
     for ingredient_detail in ingredient_details_iter {
         let (ingredient_id, name, lifespan) = ingredient_detail?;
         let mut price_query = conn.prepare("SELECT price from prices where ingredient_id = ?1;")?;
         let prices_iter = price_query.query_map([ingredient_id], |row| {
             Ok(row.get::<_, f32>(0)?)
-        });
+        })?;
 
         /* let prices_iter = match prices_iter {
             Ok(prices_iter) => prices_iter,
@@ -115,8 +133,15 @@ pub fn query_all_ingredients (conn: &Connection) -> Result<()> {
 
         let mean_price = calculate_mean(prices);
 
-        println!("ID {ingredient_id}: {name} ({lifespan}) (${mean_price:.2})");
+        table.add_row(Row::new(vec![
+            Cell::new(ingredient_id.to_string().trim()),
+            Cell::new(&name),
+            Cell::new(&lifespan),
+            Cell::new(format!("${mean_price:.2}").trim()),
+        ]));
     }
+
+    table.printstd();
 
     Ok(())
 }
