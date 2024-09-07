@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use rusqlite::{Connection, Result};
 use crate::helper::calculate_mean;
 use prettytable::{Table, Row, Cell};
@@ -17,17 +19,58 @@ pub fn query_all_dishes(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-/* pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
+pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     let ingredient_list = arg_list;
     if ingredient_list.is_empty() {
         eprintln!("No ingredient input for dish query");
         return Ok(());
     }
 
+    // get all ingredient id
+    let mut all_ingredient_id_query = conn.prepare("SELECT id FROM ingredients;")?;
+    let all_ingredient_id_hashset: HashSet<u32> = all_ingredient_id_query
+        .query_map([], |row| Ok(row.get::<_, u32>(0)?))?
+        .map(|result| result.unwrap())
+        .collect();
+
+    // get input ingredient id
+    let mut input_ingredient_id_list: Vec<u32> = Vec::new(); 
+    for ingredient in ingredient_list {
+        let mut input_ingredient_id_query = conn.prepare("SELECT id FROM ingredients;")?;
+        let ingredient_id: Result<u32> = input_ingredient_id_query.query_row([&ingredient], |row| row.get(0));
+        let ingredient_id = match ingredient_id {
+            Ok(id) => id,
+            Err(_) => {
+                eprintln!("Ingredient \"{}\" does not exist in database", ingredient);
+                return Ok(());
+            }
+        };
+        input_ingredient_id_list.push(ingredient_id);
+    }
+    let input_ingredient_id_hashset: HashSet<u32> = input_ingredient_id_list.into_iter().collect();
     
     
     Ok(())
-} */
+}
+
+pub fn get_all_recipes_hashmap(conn: &Connection) -> Result<HashMap<u32, Vec<u32>>> {
+    let mut all_recipes: HashMap<u32, Vec<u32>> = HashMap::new();
+    let mut all_dish_id_query = conn.prepare("SELECT id FROM ingredients;")?;
+    let all_dish_id_list: Vec<u32> = all_dish_id_query
+        .query_map([], |row| Ok(row.get::<_, u32>(0)?))?
+        .map(|result| result.unwrap())
+        .collect();
+    for dish_id in all_dish_id_list {
+        let mut all_dish_id_query = conn.prepare("SELECT ingredient_id FROM recipes WHERE dish_id = ?1;")?;
+        let ingredient_id: Vec<u32> = all_dish_id_query
+        .query_map([], |row| Ok(row.get::<_, u32>(0)?))?
+        .map(|result| result.unwrap())
+        .collect();
+        all_recipes.insert(dish_id, ingredient_id);
+    }
+
+    Ok(all_recipes)
+}
 
 pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     if arg_list.is_empty() {
@@ -38,9 +81,7 @@ pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     let dish_name = &arg_list[0];
 
     let mut dish_id_query = conn.prepare("SELECT id FROM dishes WHERE name = ?1;")?;
-    let dish_id: Result<u32> = dish_id_query.query_row([dish_name], |row| {
-        row.get(0)
-    });
+    let dish_id: Result<u32> = dish_id_query.query_row([dish_name], |row| row.get(0));
 
     let dish_id = match dish_id {
         Ok(id) => id,
@@ -96,7 +137,7 @@ pub fn query_recipe(arg_list: Vec<String>, conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_all_ingredients (conn: &Connection) -> Result<()> {
+pub fn query_all_ingredients_details (conn: &Connection) -> Result<()> {
     let mut ingredient_details_query = conn.prepare("SELECT * FROM ingredients;")?;
     let ingredient_details_iter = ingredient_details_query.query_map([], |row| {
         Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))

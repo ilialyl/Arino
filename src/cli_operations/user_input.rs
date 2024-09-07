@@ -10,9 +10,9 @@ pub fn match_commands(user_input: String, conn: &Connection) {
 
     match command.trim() {
         "dish all" => query_commands::query_all_dishes(conn).expect("database error"),
-        //"dish" => query_commands::query_dish_with_ingredient(arg_list, conn).expect("database error"),
+        "dish with" => query_commands::query_dish_with_ingredient(arg_list, conn).expect("database error"),
         "recipe" => query_commands::query_recipe(arg_list, conn).expect("database error"),
-        "ingredient all" => query_commands::query_all_ingredients(conn).expect("database error"),
+        "ingredient all" => query_commands::query_all_ingredients_details(conn).expect("database error"),
         "quit" => std::process::exit(0),
         _ => eprintln!("Unknown command"),
     }
