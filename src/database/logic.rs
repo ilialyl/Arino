@@ -1,26 +1,28 @@
 use std::collections::{HashMap, HashSet};
 
-pub fn filter_recipes_with_ingredient(filter: &HashSet<char>, all_ingredients: &HashSet<char>, recipes: &Vec<Vec<char>>) {
-    for recipe in recipes {
+pub fn filter_recipes_with_ingredient(filter: &HashSet<u32>, all_ingredients: &HashSet<u32>, recipes: &HashMap<u32, Vec<u32>>) -> Vec<u32> {
+    let mut filtered: Vec<u32> = Vec::new();
+    for (recipe, ingredients) in recipes {
         for keyword in filter {
-            if recipe.contains(keyword) {
-                if no_other_keywords(filter, recipe, all_ingredients) {
+            if ingredients.contains(keyword) {
+                if no_other_keywords(filter, all_ingredients, ingredients) {
+                    filtered.push(*recipe);
                     break;
                 }
             }
         }
     }
+
+    filtered
 }
 
-pub fn no_other_keywords(filter: &HashSet<char>, list: &Vec<char>, all_ingredients: &HashSet<char>) -> bool{
+pub fn no_other_keywords(filter: &HashSet<u32>, all_ingredients: &HashSet<u32>, ingredients: &Vec<u32>) -> bool{
     let difference: HashSet<_> = all_ingredients.difference(&filter).cloned().collect();
     for keyword in difference {
-        if list.contains(&keyword) {
+        if ingredients.contains(&keyword) {
             return false;
         }
     }
-    list.iter().for_each(|c| print!("{}, ", c));
-    println!("\n");
 
     return true;
 }

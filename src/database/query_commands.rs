@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 use rusqlite::{Connection, Result};
 use crate::helper::calculate_mean;
 use prettytable::{Table, Row, Cell};
+
+use super::logic::filter_recipes_with_ingredient;
 #[allow(dead_code)]
 
 pub fn query_all_dishes(conn: &Connection) -> Result<()> {
@@ -36,10 +38,13 @@ pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> R
     // get input ingredient id
     let mut input_ingredient_id_list: Vec<u32> = Vec::new(); 
     for ingredient in ingredient_list {
-        let mut input_ingredient_id_query = conn.prepare("SELECT id FROM ingredients;")?;
+        let mut input_ingredient_id_query = conn.prepare("SELECT id FROM ingredients WHERE name = ?1;")?;
         let ingredient_id: Result<u32> = input_ingredient_id_query.query_row([&ingredient], |row| row.get(0));
         let ingredient_id = match ingredient_id {
-            Ok(id) => id,
+            Ok(id) => {
+                eprintln!("Ingredient \"{}\" does exist", ingredient);
+                id  
+            },
             Err(_) => {
                 eprintln!("Ingredient \"{}\" does not exist in database", ingredient);
                 return Ok(());
@@ -48,6 +53,10 @@ pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> R
         input_ingredient_id_list.push(ingredient_id);
     }
     let input_ingredient_id_hashset: HashSet<u32> = input_ingredient_id_list.into_iter().collect();
+
+    let all_recipes_hashmap = get_all_recipes_hashmap(&conn)?;
+    let dish_id_list = filter_recipes_with_ingredient(&input_ingredient_id_hashset, &all_ingredient_id_hashset, &all_recipes_hashmap);
+    println!("{:?}", dish_id_list);
     
     
     Ok(())
