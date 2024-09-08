@@ -42,11 +42,11 @@ pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> R
         let ingredient_id: Result<u32> = input_ingredient_id_query.query_row([&ingredient], |row| row.get(0));
         let ingredient_id = match ingredient_id {
             Ok(id) => {
-                eprintln!("Ingredient \"{}\" does exist", ingredient);
                 id  
             },
-            Err(_) => {
-                eprintln!("Ingredient \"{}\" does not exist in database", ingredient);
+            Err(e) => {
+                eprintln!("Ingredient \"{}\" does not exist in database.", ingredient);
+                eprintln!("{}", e);
                 return Ok(());
             }
         };
@@ -55,16 +55,30 @@ pub fn query_dish_with_ingredient(arg_list: Vec<String>, conn: &Connection) -> R
     let input_ingredient_id_hashset: HashSet<u32> = input_ingredient_id_list.into_iter().collect();
 
     let all_recipes_hashmap = get_all_recipes_hashmap(&conn)?;
+
     let dish_id_list = filter_recipes_with_ingredient(&input_ingredient_id_hashset, &all_ingredient_id_hashset, &all_recipes_hashmap);
-    println!("{:?}", dish_id_list);
     
+    let mut available_dishes: Vec<String> = Vec::new();
+    for id in dish_id_list {
+        let mut stmt = conn.prepare("SELECT name FROM dishes WHERE id = ?1;")?;
+        let dishes_result: String = stmt.query_row([id], |row| row.get(0))?;
+        available_dishes.push(dishes_result);
+    }
+
+    if !available_dishes.is_empty() {
+        println!("You can make: ");
+        available_dishes.iter().for_each(|s| println!("- {s}") );
+    }
+    else {
+        println!("No available dish");
+    }
     
     Ok(())
 }
 
 pub fn get_all_recipes_hashmap(conn: &Connection) -> Result<HashMap<u32, Vec<u32>>> {
     let mut all_recipes: HashMap<u32, Vec<u32>> = HashMap::new();
-    let mut all_dish_id_query = conn.prepare("SELECT id FROM ingredients;")?;
+    let mut all_dish_id_query = conn.prepare("SELECT id FROM dishes;")?;
     let all_dish_id_list: Vec<u32> = all_dish_id_query
         .query_map([], |row| Ok(row.get::<_, u32>(0)?))?
         .map(|result| result.unwrap())
@@ -72,7 +86,7 @@ pub fn get_all_recipes_hashmap(conn: &Connection) -> Result<HashMap<u32, Vec<u32
     for dish_id in all_dish_id_list {
         let mut all_dish_id_query = conn.prepare("SELECT ingredient_id FROM recipes WHERE dish_id = ?1;")?;
         let ingredient_id: Vec<u32> = all_dish_id_query
-        .query_map([], |row| Ok(row.get::<_, u32>(0)?))?
+        .query_map([dish_id], |row| Ok(row.get::<_, u32>(0)?))?
         .map(|result| result.unwrap())
         .collect();
         all_recipes.insert(dish_id, ingredient_id);

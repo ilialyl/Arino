@@ -18,6 +18,7 @@ pub fn filter_recipes_with_ingredient(filter: &HashSet<u32>, all_ingredients: &H
 
 pub fn no_other_keywords(filter: &HashSet<u32>, all_ingredients: &HashSet<u32>, ingredients: &Vec<u32>) -> bool{
     let difference: HashSet<_> = all_ingredients.difference(&filter).cloned().collect();
+
     for keyword in difference {
         if ingredients.contains(&keyword) {
             return false;
