@@ -25,7 +25,7 @@ pub fn get_argument_list(arg_str: Option<&str>) -> Vec<String> {
     };
 
     let separated_args = arg_str.split(",");
-    let arg_list: Vec<String> = separated_args.map(|s| s.trim().to_string()).collect();
+    let arg_list: Vec<String> = separated_args.map(|s| s.trim().to_string().to_lowercase()).collect();
 
     arg_list
 }
