@@ -6,7 +6,7 @@
 		* Ingredients (Vegetables, Fruits, Dairy, Meats, Condiment)
 			* Price
 			* Lifespan
-* Database **can be updated at any tim****e**
+* Database can be updated at **any time**
 	* New Dishes and Ingredients can be added
 	* An Ingredient can have different prices
 		* Prices for an Ingredient can be added
@@ -51,7 +51,3 @@
 	* show average price of each ingredients 
 	* delete recipe
 	* delete dish along with recipes
----
-## To-Do List
-Deadline: $
-	* No need to rush! Make it a proud project!
