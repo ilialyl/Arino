@@ -31,10 +31,8 @@ pub fn all_dish_names(conn: &Connection) -> Result<()> {
 }
 
 pub fn recipe_by_dish_name(conn: &Connection) -> Result<()> {
-    let dish_name = match prompt("Dish name") {
-        Ok(s) => s,
-        Err(_) => return Ok(()),
-    };
+    let dish_name = prompt("Dish name");
+    
     if dish_name.trim().is_empty() {
         return Ok(());
     }

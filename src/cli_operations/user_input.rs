@@ -2,7 +2,7 @@ use rusqlite::Connection;
 use database::query;
 use crate::database;
 use crate::helper::flush;
-use std::io::{stdin, Error};
+use std::io::stdin;
 
 pub fn match_commands(user_input: String, conn: &Connection) {
     let mut user_input = user_input.split("\"");
@@ -25,15 +25,15 @@ pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{
     separated_inputs_vec
 }
 
-pub fn prompt(prompt: &str) -> Result<String, Error> {
+pub fn prompt(prompt: &str) -> String {
     let mut user_input = String::new();
     print!("{}> ", prompt);
     flush();
     match stdin().read_line(&mut user_input) {
-        Ok(_) => return Ok(user_input.trim().to_lowercase().to_string()),
+        Ok(_) => return user_input.trim().to_lowercase().to_string(),
         Err(e) => {
             eprint!("{e}");
-            return Err(e);
+            return user_input;
         },
     }
 }

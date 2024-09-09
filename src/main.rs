@@ -11,9 +11,7 @@ fn main() {
     
     println!("----Arino----");
     loop {
-        match prompt("Command") {
-            Ok(user_input) => user_input::match_commands(user_input, &connection),
-            Err(e) => eprint!("Error: {e}"),
-        }
+        let user_input = prompt("Command");
+        user_input::match_commands(user_input, &connection);
     }
 }

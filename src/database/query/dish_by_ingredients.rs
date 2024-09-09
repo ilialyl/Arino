@@ -5,13 +5,10 @@ use prettytable::{Cell, Row, Table};
 use crate::cli_operations::user_input::{prompt, separate_by};
 
 pub fn get_dishes(conn: &Connection) -> Result<()> {
-    let input_ingredients = match prompt("Ingredients (separated by comma)") {
-        Ok(s) => s,
-        Err(_) => return Ok(()),
-    };
+    let input_ingredients = prompt("Ingredients (separated by comma)");
 
     let input_ingredients_vec = separate_by(",", input_ingredients);
-    
+
     let mut input_ingredient_ids_vec: Vec<u32> = Vec::new(); 
 
     if input_ingredients_vec.is_empty() {
