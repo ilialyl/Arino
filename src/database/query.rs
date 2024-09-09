@@ -7,7 +7,7 @@ use prettytable::{Cell, Row, Table};
 use super::logic::filter_dishes_with_input_ingredients;
 #[allow(dead_code)]
 
-pub fn query_all_dish_names(conn: &Connection) -> Result<()> {
+pub fn all_dish_names(conn: &Connection) -> Result<()> {
     let mut select_dish_names_stmt = conn.prepare("Select id, name FROM dishes")?;
     let names_iter = select_dish_names_stmt.query_map([], |row| {
         Ok((row.get::<_, u32>(0)?, row.get::<_, String>(1)?))
@@ -33,7 +33,7 @@ pub fn query_all_dish_names(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn query_dish_with_ingredient(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
+pub fn dish_by_ingredients(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
     let input_ingredients_vec = arg_vec;
     let mut input_ingredient_ids_vec: Vec<u32> = Vec::new(); 
 
@@ -99,7 +99,7 @@ pub fn query_dish_with_ingredient(arg_vec: Vec<String>, conn: &Connection) -> Re
     Ok(())
 }
 
-pub fn get_all_recipes_map(conn: &Connection) -> Result<HashMap<u32, Vec<u32>>> {
+fn get_all_recipes_map(conn: &Connection) -> Result<HashMap<u32, Vec<u32>>> {
     let mut all_recipes_map: HashMap<u32, Vec<u32>> = HashMap::new();
     let mut select_dish_ids_stmt = conn.prepare("SELECT id FROM dishes;")?;
     let dish_ids_vec: Vec<u32> = select_dish_ids_stmt
@@ -119,7 +119,7 @@ pub fn get_all_recipes_map(conn: &Connection) -> Result<HashMap<u32, Vec<u32>>> 
     Ok(all_recipes_map)
 }
 
-pub fn query_recipe_by_dish_name(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
+pub fn recipe_by_dish_name(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
     if arg_vec.is_empty() {
         eprintln!("No dish name input for recipe query");
         return Ok(());
@@ -183,7 +183,7 @@ pub fn query_recipe_by_dish_name(arg_vec: Vec<String>, conn: &Connection) -> Res
     Ok(())
 }
 
-pub fn query_all_ingredients_details (conn: &Connection) -> Result<()> {
+pub fn all_ingredients(conn: &Connection) -> Result<()> {
     let mut select_ingredients_stmt = conn.prepare("SELECT * FROM ingredients;")?;
     let ingredients_iter = select_ingredients_stmt.query_map([], |row| {
         Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))
