@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use rusqlite::{Connection, Result};
 use prettytable::{Cell, Row, Table};
 
-pub fn dish_by_ingredients(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
+pub fn get_dishes(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
     let input_ingredients_vec = arg_vec;
     let mut input_ingredient_ids_vec: Vec<u32> = Vec::new(); 
 
