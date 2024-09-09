@@ -1,5 +1,5 @@
-pub mod add_commands;
-pub mod delete_commands;
+pub mod insert;
+pub mod delete;
 pub mod query;
 pub mod connection;
 pub mod logic;

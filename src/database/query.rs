@@ -1,5 +1,6 @@
-use std::collections::{HashMap, HashSet};
+pub mod dish_by_ingredients;
 
+use std::collections::{HashMap, HashSet};
 use rusqlite::{Connection, Result};
 use crate::helper::calculate_mean;
 use prettytable::{Cell, Row, Table};
