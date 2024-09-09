@@ -1,7 +1,7 @@
 pub mod dish_by_ingredients;
 
 use rusqlite::{Connection, Result};
-use crate::helper::calculate_mean;
+use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 use prettytable::{Cell, Row, Table};
 
 pub fn all_dish_names(conn: &Connection) -> Result<()> {
@@ -30,16 +30,17 @@ pub fn all_dish_names(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn recipe_by_dish_name(arg_vec: Vec<String>, conn: &Connection) -> Result<()> {
-    if arg_vec.is_empty() {
-        eprintln!("No dish name input for recipe query");
+pub fn recipe_by_dish_name(conn: &Connection) -> Result<()> {
+    let dish_name = match prompt("Dish name") {
+        Ok(s) => s,
+        Err(_) => return Ok(()),
+    };
+    if dish_name.trim().is_empty() {
         return Ok(());
     }
 
-    let dish_name = &arg_vec[0];
-
     let mut select_dish_ids_by_name_stmt = conn.prepare("SELECT id FROM dishes WHERE name = ?1;")?;
-    let dish_id_result: Result<u32> = select_dish_ids_by_name_stmt.query_row([dish_name], |row| row.get(0));
+    let dish_id_result: Result<u32> = select_dish_ids_by_name_stmt.query_row([&dish_name], |row| row.get(0));
 
     let dish_id = match dish_id_result {
         Ok(id) => id,
