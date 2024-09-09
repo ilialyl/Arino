@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 use database::query;
-use crate::database;
+use crate::database::{self, insert};
 use crate::helper::flush;
 use std::io::stdin;
 
@@ -9,6 +9,7 @@ pub fn match_commands(user_input: String, conn: &Connection) {
     let command = user_input.next().expect("No command input");
 
     match command.trim() {
+        "new ingredient" => insert::ingredient(conn).expect("database error"),
         "list all dishes" => query::all_dish_names(conn).expect("database error"),
         "list all ingredients" => query::all_ingredients(conn).expect("database error"),
         "i have" => query::dish_by_ingredients::get_dishes(conn).expect("database error"),
