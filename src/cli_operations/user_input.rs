@@ -1,21 +1,24 @@
-use rusqlite::Connection;
+use rusqlite::Result;
 use database::query;
 use crate::database::{self, insert};
 use crate::helper::flush;
 use std::io::stdin;
 
-pub fn match_commands(user_input: String, conn: &Connection) {
+pub fn match_commands(user_input: String) -> Result<()>{
     let mut user_input = user_input.split("\"");
     let command = user_input.next().expect("No command input");
 
     match command.trim() {
-        "new ingredient" => insert::ingredient(conn).expect("database error"),
-        "list all dishes" => query::all_dish_names(conn).expect("database error"),
-        "list all ingredients" => query::all_ingredients(conn).expect("database error"),
-        "i have" => query::dish_by_ingredients::get_dishes(conn).expect("database error"),
-        "recipe of" => query::recipe_by_dish_name(conn).expect("database error"),
+        "new ingredient" => insert::ingredient(),
+        "list all dishes" => query::all_dish_names(),
+        "list all ingredients" => query::all_ingredients(),
+        "i have" => query::dish_by_ingredients::get_dishes(),
+        "recipe of" => query::recipe_by_dish_name(),
         "quit" => std::process::exit(0),
-        _ => eprintln!("Unknown command"),
+        _ => {
+            eprintln!("Unknown command");
+            Ok(())
+        }
     }
 }
 

@@ -1,10 +1,13 @@
 pub mod dish_by_ingredients;
 
-use rusqlite::{Connection, Result};
+use rusqlite::Result;
 use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 use prettytable::{Cell, Row, Table};
 
-pub fn all_dish_names(conn: &Connection) -> Result<()> {
+use super::get_connection;
+
+pub fn all_dish_names() -> Result<()> {
+    let conn = get_connection();
     let mut select_dish_names_stmt = conn.prepare("Select id, name FROM dishes")?;
     let names_iter = select_dish_names_stmt.query_map([], |row| {
         Ok((row.get::<_, u32>(0)?, row.get::<_, String>(1)?))
@@ -30,7 +33,9 @@ pub fn all_dish_names(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn recipe_by_dish_name(conn: &Connection) -> Result<()> {
+pub fn recipe_by_dish_name() -> Result<()> {
+    let conn = get_connection();
+
     let dish_name = prompt("Dish name");
     
     if dish_name.trim().is_empty() {
@@ -93,7 +98,9 @@ pub fn recipe_by_dish_name(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn all_ingredients(conn: &Connection) -> Result<()> {
+pub fn all_ingredients() -> Result<()> {
+    let conn = get_connection();
+
     let mut select_ingredients_stmt = conn.prepare("SELECT * FROM ingredients;")?;
     let ingredients_iter = select_ingredients_stmt.query_map([], |row| {
         Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))

@@ -1,8 +1,9 @@
-use rusqlite::{Connection, Result};
+use rusqlite::Result;
+use crate::{cli_operations::user_input::prompt, database::get_connection};
 
-use crate::cli_operations::user_input::prompt;
-
-pub fn ingredient(conn: &Connection) -> Result<()> {
+#[allow(unused_variables)]
+pub fn ingredient() -> Result<()> {
+    let conn = get_connection();
     let name = prompt("Name");
 
     if name.is_empty() {
@@ -32,17 +33,17 @@ pub fn ingredient(conn: &Connection) -> Result<()> {
     Ok(())
 }
 
-pub fn price(ingredient_name: String, price: String, conn: &Connection) -> Result<()> {
+pub fn price(ingredient_name: String, price: String) -> Result<()> {
 
     Ok(())
 }
 
-pub fn dish(name: String, conn: &Connection) -> Result<()> {
+pub fn dish(name: String) -> Result<()> {
 
     Ok(())
 }
 
-pub fn recipe(dish_name: String, conn: &Connection) -> Result<()> {
+pub fn recipe(dish_name: String) -> Result<()> {
 
     Ok(())
 }
