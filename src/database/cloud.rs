@@ -2,8 +2,9 @@ use reqwest::Client;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
+use std::time::Duration;
 
-pub async fn upload() -> Result<(), Box<dyn std::error::Error>> {
+pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
     let access_token = "sl.B8kaY9bwoLGaveJqeo-BCqQbXLfthxyCNGga60_LmWho0Kql-spElGVLaCJS3RlZsF2vIuNKbb0Abm7LuXB_lkpco9ppnQXAG6JbQ2QtIYy8HoSaoKvirSAEgGslx8s-ktTcOFN7wBbpHRM";
 
@@ -31,10 +32,10 @@ pub async fn upload() -> Result<(), Box<dyn std::error::Error>> {
 
     // Check if the upload was successful
     if response.status().is_success() {
-        println!("File uploaded successfully!");
+        println!("Database synced successfully");
     } else {
         let error_message = response.text().await?;
-        println!("Failed to upload file: {}", error_message);
+        println!("Failed to sync database: {}", error_message);
     }
 
     Ok(())
@@ -72,6 +73,16 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     }
 
     Ok(())
+}
+
+pub async fn has_internet_access() -> bool {
+    let client = Client::new();
+    let url = "https://www.google.com";
+
+    match client.get(url).timeout(Duration::from_secs(5)).send().await {
+        Ok(response) => response.status().is_success(),
+        Err(_) => false,
+    }
 }
 
 pub enum Database {

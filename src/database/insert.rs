@@ -1,8 +1,19 @@
 use rusqlite::Result;
-use crate::{cli_operations::user_input::prompt, database::get_connection};
+use crate::{cli_operations::user_input::prompt, database::{cloud::{fetch, has_internet_access, sync, Database}, get_connection}};
 
-#[allow(unused_variables)]
-pub fn ingredient() -> Result<()> {
+pub async fn ingredient() -> Result<()> {
+    if !has_internet_access().await {
+        return Ok(());
+    }
+
+    match fetch(Database::Main).await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
     let conn = get_connection();
     let name = prompt("Name");
 
@@ -29,6 +40,14 @@ pub fn ingredient() -> Result<()> {
     let mut stmt = conn.prepare("INSERT INTO ingredients (category_id, name, lifespan) VALUES (?1, ?2, ?3);")?;
     stmt.execute((category_id, &name, &lifespan))?;
     println!("Inserted: {} {} {} successfully", name, category, lifespan);
+
+    match sync().await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
 
     Ok(())
 }
