@@ -18,15 +18,17 @@ pub async fn match_commands(user_input: String) -> Result<()>{
         "fetch database" => {
             if has_internet_access().await {
                 fetch(Database::Main).await.expect("Error fetching database");
+            } else {
+                eprintln!("Internet access is required to fetch database from cloud");
             }
-            eprintln!("Internet access is required to fetch database from cloud");
             Ok(())
         },
         "sync database" => {
             if has_internet_access().await {
                 sync().await.expect("Error syncing database");
+            } else {
+                eprintln!("Internet access is required to sync database to cloud");
             }
-            eprintln!("Internet access is required to sync database to cloud");
             Ok(())
         },
         "quit" => std::process::exit(0),
