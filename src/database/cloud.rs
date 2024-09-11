@@ -1,12 +1,22 @@
 use reqwest::Client;
+use std::fs;
 use std::fs::File;
 use std::io::Read;
+use std::io;
 use std::io::Write;
 use std::time::Duration;
+use std::collections::HashMap;
+use serde::Deserialize;
 
 pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
-    let access_token = "sl.B8kaY9bwoLGaveJqeo-BCqQbXLfthxyCNGga60_LmWho0Kql-spElGVLaCJS3RlZsF2vIuNKbb0Abm7LuXB_lkpco9ppnQXAG6JbQ2QtIYy8HoSaoKvirSAEgGslx8s-ktTcOFN7wBbpHRM";
+    let access_token = match get_access_token().await {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    };
 
     // The file you want to upload
     let file_path = "database.db";
@@ -43,7 +53,13 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
-    let access_token = "nqQaAyWMpYAAAAAAAAAASU58T6-2bb8keAG54wAFBWc";
+    let access_token = match get_access_token().await {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    };
 
     let dropbox_path = match source {
         Database::Main => "/database.db",
@@ -83,6 +99,77 @@ pub async fn has_internet_access() -> bool {
         Ok(response) => response.status().is_success(),
         Err(_) => false,
     }
+}
+
+
+#[derive(Deserialize, Debug)]
+struct TokenResponse {
+    access_token: String,
+}
+
+async fn get_access_token() -> Result<String, Box<dyn std::error::Error>> {
+    let creditials = match get_creditials() {
+        Ok(c) => c,
+        Err(_) => {
+            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "Creditials not found")));
+        },
+    };
+
+    let client_id = creditials.client_id;
+    let client_secret = creditials.client_secret;
+    let refresh_token = creditials.refresh_token;
+    
+    // Dropbox token endpoint
+    let token_url = "https://api.dropboxapi.com/oauth2/token";
+
+    // Prepare form data for the request
+    let mut params = HashMap::new();
+    params.insert("refresh_token", refresh_token);
+    params.insert("grant_type", "refresh_token".to_string());
+    params.insert("client_id", client_id);
+    params.insert("client_secret", client_secret);
+
+    // Create an HTTP client
+    let client = Client::new();
+
+    // Send the request to Dropbox API
+    let response = client
+        .post(token_url)
+        .form(&params)
+        .send()
+        .await?;
+
+    // Handle response based on status code
+    let status = response.status();
+    if status.is_success() {
+        let token_response: TokenResponse = response.json().await?;
+        Ok(token_response.access_token)
+    } else {
+        // Get the error text from the response
+        let error_text = response.text().await?;
+        eprintln!("Failed to get access token: {}", error_text);
+        Err(format!("Failed request with status: {}", status).into())
+    }
+}
+
+#[derive(Deserialize)]
+struct Creditials {
+    client_id: String,
+    client_secret: String,
+    refresh_token: String,
+}
+
+fn get_creditials() -> Result<Creditials, Box<dyn std::error::Error>> {
+    let json_string = fs::read_to_string("key.json");
+    let json_string = match json_string {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "key not found")));
+        },
+    };
+    let parsed: Creditials = serde_json::from_str(&json_string).unwrap();
+
+    Ok(parsed)
 }
 
 pub enum Database {
