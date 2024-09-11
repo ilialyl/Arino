@@ -43,7 +43,7 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
-    let access_token = "sl.B8kaY9bwoLGaveJqeo-BCqQbXLfthxyCNGga60_LmWho0Kql-spElGVLaCJS3RlZsF2vIuNKbb0Abm7LuXB_lkpco9ppnQXAG6JbQ2QtIYy8HoSaoKvirSAEgGslx8s-ktTcOFN7wBbpHRM";
+    let access_token = "nqQaAyWMpYAAAAAAAAAASU58T6-2bb8keAG54wAFBWc";
 
     let dropbox_path = match source {
         Database::Main => "/database.db",

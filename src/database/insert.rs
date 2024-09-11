@@ -52,7 +52,24 @@ pub async fn ingredient() -> Result<()> {
     Ok(())
 }
 
-pub fn price(ingredient_name: String, price: String) -> Result<()> {
+pub async fn price(ingredient_name: String, price: String) -> Result<()> {
+    if !has_internet_access().await {
+        return Ok(());
+    }
+
+    match fetch(Database::Main).await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
+    let ingredient_name = prompt("Ingredient name");
+
+    if ingredient_name.is_empty() {
+        return Ok(());
+    }
 
     Ok(())
 }

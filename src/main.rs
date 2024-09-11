@@ -10,6 +10,8 @@ use tokio;
 #[tokio::main]
 async fn main() {
     if first_start() {
+        
+
         if has_internet_access().await {
             match database::cloud::fetch(Database::Main).await {
                 Ok(_) => {},
