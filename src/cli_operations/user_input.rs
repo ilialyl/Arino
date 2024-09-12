@@ -11,6 +11,7 @@ pub async fn match_commands(user_input: String) -> Result<()>{
 
     match command.trim() {
         "new ingredient" => insert::ingredient().await,
+        "add price" => insert::price().await,
         "list all dishes" => query::all_dish_names(),
         "list all ingredients" => query::all_ingredients(),
         "i have" => query::dish_by_ingredients::get_dishes(),
@@ -48,7 +49,7 @@ pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{
 
 pub fn prompt(prompt: &str) -> String {
     let mut user_input = String::new();
-    print!("{}> ", prompt);
+    print!("\n{}> ", prompt);
     flush();
     match stdin().read_line(&mut user_input) {
         Ok(_) => return user_input.trim().to_lowercase().to_string(),

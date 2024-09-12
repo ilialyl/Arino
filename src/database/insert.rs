@@ -52,7 +52,7 @@ pub async fn ingredient() -> Result<()> {
     Ok(())
 }
 
-pub async fn price(ingredient_name: String, price: String) -> Result<()> {
+pub async fn price() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
     }
@@ -65,10 +65,41 @@ pub async fn price(ingredient_name: String, price: String) -> Result<()> {
         },
     }
 
+    let conn = get_connection();
+
     let ingredient_name = prompt("Ingredient name");
 
     if ingredient_name.is_empty() {
         return Ok(());
+    }
+
+    let retrieved_ingredient_name: String = conn.query_row("SELECT name FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
+    if retrieved_ingredient_name.is_empty() {
+        eprintln!("Invalid ingredient name");
+        return Ok(());
+    }
+
+    let ingredient_id: u32 = conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
+
+    let input_price = prompt("Price per kg in AUD");
+    let input_price_float = match input_price.trim().parse::<f32>() {
+        Ok(f) => f,
+        Err(e) => {
+            eprint!("{e}");
+            return Ok(());
+        },
+    };
+
+    let mut stmt = conn.prepare("INSERT INTO prices (ingredient_id, price) VALUES (?1, ?2);")?;
+    stmt.execute((&ingredient_id, input_price))?;
+    println!("Inserted: ${:.2} to {} successfully", input_price_float, ingredient_name);
+
+    match sync().await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
     }
 
     Ok(())

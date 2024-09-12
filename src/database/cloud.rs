@@ -8,9 +8,34 @@ use std::time::Duration;
 use std::collections::HashMap;
 use serde::Deserialize;
 
+use crate::helper::flush;
+
+pub enum Database {
+    Main,
+    Backup
+}
+
+#[derive(Deserialize, Debug)]
+struct TokenResponse {
+    access_token: String,
+}
+
+#[derive(Deserialize)]
+struct Creditials {
+    client_id: String,
+    client_secret: String,
+    refresh_token: String,
+}
+
+
 pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
-    // Your Dropbox access token
-    let access_token = match get_access_token().await {
+    // Check if the access token is valid, and refresh it if necessary
+    if !check_access_token_validity().await? {
+        request_access_token().await?;
+    }
+
+    // Retrieve the access token
+    let access_token = match retrieve_access_token() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("{e}");
@@ -30,11 +55,11 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     // Set up the request client
     let client = Client::new();
 
-    // Send the file to Dropbox
+    // Send the file to Dropbox with overwrite mode
     let response = client
         .post("https://content.dropboxapi.com/2/files/upload")
         .header("Authorization", format!("Bearer {}", access_token))
-        .header("Dropbox-API-Arg", format!(r#"{{"path": "{}","mode": "add","autorename": true,"mute": false,"strict_conflict": false}}"#, destination_path))
+        .header("Dropbox-API-Arg", format!(r#"{{"path": "{}","mode": "overwrite","autorename": false,"mute": false}}"#, destination_path))
         .header("Content-Type", "application/octet-stream")
         .body(file_content)
         .send()
@@ -45,7 +70,7 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
         println!("Database synced successfully");
     } else {
         let error_message = response.text().await?;
-        println!("Failed to sync database: {}", error_message);
+        eprintln!("Failed to sync database: {}", error_message);
     }
 
     Ok(())
@@ -53,7 +78,10 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
 
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
-    let access_token = match get_access_token().await {
+    if !check_access_token_validity().await? {
+        request_access_token().await?;
+    }
+    let access_token = match retrieve_access_token() {
         Ok(s) => s,
         Err(e) => {
             eprintln!("{e}");
@@ -102,16 +130,13 @@ pub async fn has_internet_access() -> bool {
 }
 
 
-#[derive(Deserialize, Debug)]
-struct TokenResponse {
-    access_token: String,
-}
 
-async fn get_access_token() -> Result<String, Box<dyn std::error::Error>> {
+async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
     let creditials = match get_creditials() {
         Ok(c) => c,
-        Err(_) => {
-            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "Creditials not found")));
+        Err(e) => {
+            eprint!("Creditial not found: {e}");
+            return Ok(())
         },
     };
 
@@ -143,21 +168,84 @@ async fn get_access_token() -> Result<String, Box<dyn std::error::Error>> {
     let status = response.status();
     if status.is_success() {
         let token_response: TokenResponse = response.json().await?;
-        Ok(token_response.access_token)
+        store_access_token(token_response.access_token);
     } else {
         // Get the error text from the response
         let error_text = response.text().await?;
-        eprintln!("Failed to get access token: {}", error_text);
-        Err(format!("Failed request with status: {}", status).into())
+        eprintln!("Failed to request access token: {}", error_text);
+    }
+    Ok(())
+}
+
+fn store_access_token(access_token: String) {
+    let json_string = match serde_json::to_string(&access_token) {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("Error storing parsing access token to json: {e}");
+            return;
+        }
+    };
+
+    match std::fs::write("access_token.json", json_string) {
+        Ok(_) => {},
+        Err(e) => eprintln!("Error storing access token: {e}"),
     }
 }
 
-#[derive(Deserialize)]
-struct Creditials {
-    client_id: String,
-    client_secret: String,
-    refresh_token: String,
+fn retrieve_access_token() -> Result<String, Box<dyn std::error::Error>> {
+    let json_string = fs::read_to_string("access_token.json");
+    let json_string = match json_string {
+        Ok(s) => s,
+        Err(_) => {
+            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "stored access token not found")));
+        },
+    };
+    let parsed: String = serde_json::from_str(&json_string).unwrap();
+
+    Ok(parsed)
 }
+
+async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error>> {
+    let access_token = match retrieve_access_token() {
+        Ok(s) => s,
+        Err(_) => {
+            eprint!("Using new access token...");
+            flush();
+            print!("\r");
+            return Ok(false);
+        }
+    };
+
+    // Dropbox check endpoint (this is a lightweight request)
+    let url = "https://api.dropboxapi.com/2/users/get_current_account";
+
+    // Create an HTTP client
+    let client = Client::new();
+
+    // Send the request with the access token
+    let response = client
+        .post(url)
+        .bearer_auth(access_token)  // Use the access token for authorization
+        .send()
+        .await?;
+
+    // Check if the response status is successful (2xx)
+    if response.status().is_success() {
+        eprint!("Using new access token...");
+        flush();
+        print!("\r");
+        Ok(true)  // Token is valid
+    } else if response.status().as_u16() == 401 {
+        eprint!("Using old access token...");
+        flush();
+        print!("\r");
+        Ok(false) // Token is invalid or expired
+    } else {
+        eprintln!("Unexpected error");
+        Err(format!("Unexpected error: {}", response.status()).into())
+    }
+}
+
 
 fn get_creditials() -> Result<Creditials, Box<dyn std::error::Error>> {
     let json_string = fs::read_to_string("key.json");
@@ -172,7 +260,3 @@ fn get_creditials() -> Result<Creditials, Box<dyn std::error::Error>> {
     Ok(parsed)
 }
 
-pub enum Database {
-    Main,
-    Backup
-}
