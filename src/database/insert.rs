@@ -105,12 +105,73 @@ pub async fn price() -> Result<()> {
     Ok(())
 }
 
-pub fn dish(name: String) -> Result<()> {
+pub async fn dish() -> Result<()> {
+    if !has_internet_access().await {
+        return Ok(());
+    }
+
+    match fetch(Database::Main).await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
+    let conn = get_connection();
+
+    let dish_name = prompt("Dish name");
+
+    if dish_name.is_empty() {
+        return Ok(());
+    }
+
+    let mut stmt = conn.prepare("INSERT INTO dishes (name) VALUES (?1);")?;
+    stmt.execute([&dish_name])?;
+    println!("Inserted {dish_name} successfully. Do you want to add recipe now?");
+    if prompt("Y/N") == "y" {
+        match recipe(Some(dish_name)).await {
+            Ok(_) => {},
+            Err(e) => eprintln!("{e}"),
+        }
+    }
+
+    match sync().await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
 
     Ok(())
 }
 
-pub fn recipe(dish_name: String) -> Result<()> {
+pub async fn recipe(dish_name: Option<String>) -> Result<()> {
+    let dish_name = match dish_name {
+        Some(s) => s,
+        None => {
+            if !has_internet_access().await {
+                return Ok(());
+            }
+        
+            match fetch(Database::Main).await {
+                Ok(_) => {},
+                Err(e) => {
+                    eprintln!("{e}");
+                    return Ok(());
+                },
+            }
+        
+            let s = prompt("Dish name");
+            if s.is_empty() {
+                return Ok(());
+            }
+            s
+        },
+    };
+
+    println!("Your dish is {dish_name}, but recipe insertion function is not yet implemented.");    
 
     Ok(())
 }

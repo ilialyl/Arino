@@ -12,6 +12,8 @@ pub async fn match_commands(user_input: String) -> Result<()>{
     match command.trim() {
         "new ingredient" => insert::ingredient().await,
         "add price" => insert::price().await,
+        "new dish" => insert::dish().await,
+        "add recipe" => insert::recipe(None).await,
         "list all dishes" => query::all_dish_names(),
         "list all ingredients" => query::all_ingredients(),
         "i have" => query::dish_by_ingredients::get_dishes(),
