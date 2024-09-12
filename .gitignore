@@ -21,3 +21,4 @@ Cargo.lock
 #.idea/
 
 key.json
+access_token.json
