@@ -231,12 +231,12 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
 
     // Check if the response status is successful (2xx)
     if response.status().is_success() {
-        eprint!("Using new access token...");
+        eprint!("Using old access token...");
         flush();
         print!("\r");
         Ok(true)  // Token is valid
     } else if response.status().as_u16() == 401 {
-        eprint!("Using old access token...");
+        eprint!("Using new access token...");
         flush();
         print!("\r");
         Ok(false) // Token is invalid or expired
