@@ -2,7 +2,7 @@ pub mod database;
 pub mod cli_operations;
 pub mod helper;
 
-use cli_operations::user_input::{self, prompt};
+use cli_operations::user_input::{self, match_enums, prompt};
 use database::{cloud::{has_internet_access, Database}, first_start};
 use tokio;
 
@@ -29,7 +29,8 @@ async fn main() {
     println!("----Arino----");
     loop {
         let user_input = prompt("Command");
-        match user_input::match_commands(user_input).await {
+        let command_enum = match_enums(user_input);
+        match user_input::match_commands(command_enum).await {
             Ok(_) => {},
             Err(e) => eprintln!("{e}"),
         }

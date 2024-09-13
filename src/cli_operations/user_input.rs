@@ -4,21 +4,38 @@ use crate::database::cloud::{fetch, has_internet_access, sync, Database};
 use crate::database::{self, insert};
 use crate::helper::flush;
 use std::io::stdin;
+use super::commands::Command;
 
-pub async fn match_commands(user_input: String) -> Result<()>{
-    let mut user_input = user_input.split("\"");
-    let command = user_input.next().expect("No command input");
 
-    match command.trim() {
-        "new ingredient" => insert::ingredient().await,
-        "add price" => insert::price().await,
-        "new dish" => insert::dish().await,
-        "add recipe" => insert::recipe(None).await,
-        "list all dishes" => query::all_dish_names(),
-        "list all ingredients" => query::all_ingredients(),
-        "i have" => query::dish_by_ingredients::get_dishes(),
-        "recipe of" => query::recipe_by_dish_name(),
-        "fetch database" => {
+pub fn match_enums(user_input: String) -> Command {
+    match user_input.trim() {
+        "new ingredient" => Command::NewIngredient,
+        "add price" => Command::AddPrice,
+        "new dish" => Command::NewDish,
+        "add recipe" => Command::AddRecipe,
+        "list all dishes" => Command::ListAllDishes,
+        "list all ingredients" => Command::ListAllIngredients,
+        "i have" => Command::IHave,
+        "recipe of" => Command::RecipeOf,
+        "fetch database" => Command::FetchDatabase,
+        "sync database" => Command::SyncDatabase,
+        "help" => Command::Help,
+        "quit" => Command::Quit,
+        _ => Command::Unknown
+    }
+}
+
+pub async fn match_commands(command_enum: Command) -> Result<()> {
+    match command_enum {
+        Command::NewIngredient => insert::ingredient().await,
+        Command::AddPrice => insert::price().await,
+        Command::NewDish => insert::dish().await,
+        Command::AddRecipe => insert::recipe(None).await,
+        Command::ListAllDishes => query::all_dish_names(),
+        Command::ListAllIngredients => query::all_ingredients(),
+        Command::IHave => query::dish_by_ingredients::get_dishes(),
+        Command::RecipeOf => query::recipe_by_dish_name(),
+        Command::FetchDatabase => {
             if has_internet_access().await {
                 fetch(Database::Main).await.expect("Error fetching database");
             } else {
@@ -26,7 +43,7 @@ pub async fn match_commands(user_input: String) -> Result<()>{
             }
             Ok(())
         },
-        "sync database" => {
+        Command::SyncDatabase => {
             if has_internet_access().await {
                 sync().await.expect("Error syncing database");
             } else {
@@ -34,11 +51,36 @@ pub async fn match_commands(user_input: String) -> Result<()>{
             }
             Ok(())
         },
-        "quit" => std::process::exit(0),
-        _ => {
+        Command::Help => {
+            list_all_commands();
+            Ok(())
+        },
+        Command::Quit => std::process::exit(0),
+        Command::Unknown => {
             eprintln!("Unknown command");
             Ok(())
         }
+    }
+}
+
+fn list_all_commands() {
+    let all_commands = vec![
+        Command::NewIngredient.to_str(),
+        Command::AddPrice.to_str(),
+        Command::NewDish.to_str(),
+        Command::AddRecipe.to_str(),
+        Command::ListAllDishes.to_str(),
+        Command::ListAllIngredients.to_str(),
+        Command::IHave.to_str(),
+        Command::RecipeOf.to_str(),
+        Command::FetchDatabase.to_str(),
+        Command::SyncDatabase.to_str(),
+        Command::Help.to_str(),
+        Command::Quit.to_str(),
+        Command::Unknown.to_str(),
+    ];
+    for command in all_commands {
+        println!("-- {command}");
     }
 }
 

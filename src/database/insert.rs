@@ -148,9 +148,17 @@ pub async fn dish() -> Result<()> {
 }
 
 pub async fn recipe(dish_name: Option<String>) -> Result<()> {
+    let chained: bool;
+
+    let conn = get_connection();
+
     let dish_name = match dish_name {
-        Some(s) => s,
+        Some(s) => {
+            chained = true;
+            s
+        },
         None => {
+            chained = false;
             if !has_internet_access().await {
                 return Ok(());
             }
@@ -163,15 +171,78 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
                 },
             }
         
-            let s = prompt("Dish name");
-            if s.is_empty() {
-                return Ok(());
-            }
-            s
+            let dish_name = loop {
+                let user_input = prompt("Dish name");
+                if user_input.is_empty() {
+                    return Ok(());
+                }
+
+                let retrieved_dish_name: String = conn.query_row("SELECT name FROM dishes WHERE name = ?1;", [&user_input], |row| row.get(0))?;
+                if retrieved_dish_name.is_empty() {
+                    eprintln!("Invalid dish");
+                    continue;
+                }
+
+                break user_input;
+            };
+
+            dish_name
         },
     };
 
-    println!("Your dish is {dish_name}, but recipe insertion function is not yet implemented.");    
+    let mut ingredients_added_vec: Vec<String> = Vec::new();
+
+    loop {
+        let ingredient_name = prompt("Ingredient");
+
+        if ingredient_name.is_empty() {
+            break;
+        }
+
+        let retrieved_ingredient_name: String = conn.query_row("SELECT name FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
+        if retrieved_ingredient_name.is_empty() {
+            eprintln!("Invalid ingredient");
+            continue;
+        }
+
+        let quantity = loop {
+            let user_input = prompt("Quantity (g)");
+
+            if user_input.is_empty() {
+                return Ok(());
+            }
+
+            match user_input.parse::<u32>() {
+                Ok(num) => break num,
+                Err(_) => {
+                    eprintln!("Invalid quantity");
+                    continue;
+                }
+            }
+        };
+
+        let dish_id: u32 = conn.query_row("SELECT id FROM dishes WHERE name = ?1;", [&dish_name], |row| row.get(0))?;
+        let ingredient_id: u32 = conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
+
+        let mut stmt = conn.prepare("INSERT INTO recipes (dish_id, ingredient_id, quantity) VALUES (?1, ?2, ?3);")?;
+        stmt.execute((&dish_id, &ingredient_id, &quantity))?;
+
+        ingredients_added_vec.push(ingredient_name);
+    }
+
+    let ingredient_added_string = ingredients_added_vec.join(", ");
+    
+    println!("Inserted: {ingredient_added_string} into {dish_name}'s recipe");
+
+    if !chained {
+        match sync().await {
+            Ok(_) => {},
+            Err(e) => {
+                eprintln!("{e}");
+                return Ok(());
+            },
+        }
+    }
 
     Ok(())
 }
