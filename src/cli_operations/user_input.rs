@@ -38,7 +38,7 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
         Command::IHave => query::dish_by_ingredients::get_dishes(),
         Command::RecipeOf => query::recipe_by_dish_name(),
         Command::DeleteIngredientFromRecipe => delete::ingredient_from_recipe().await,
-        Command::DeleteDish => Ok(()),
+        Command::DeleteDish => delete::dish().await,
         Command::FetchDatabase => {
             if has_internet_access().await {
                 fetch(Database::Main).await.expect("Error fetching database");

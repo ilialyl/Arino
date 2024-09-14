@@ -122,8 +122,11 @@ pub async fn dish() -> Result<()> {
         return Ok(());
     }
 
-    let mut stmt = conn.prepare("DELETE FROM recipes WHERE dish_id = ?1 AND ingredient_id = ?2;")?;
-    stmt.execute((&dish_id, &ingredient_id))?;
+    let mut delete_recipe_stmt = conn.prepare("DELETE FROM recipes WHERE dish_id = ?1")?;
+    delete_recipe_stmt.execute([dish_id])?;
+
+    let mut delete_dish_stmt = conn.prepare("DELETE FROM dishes WHERE id = ?1")?;
+    delete_dish_stmt.execute([dish_id])?;
 
     match sync().await {
         Ok(_) => {},
