@@ -99,7 +99,7 @@ pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{
 
 pub fn prompt(prompt: &str) -> String {
     let mut user_input = String::new();
-    print!("\n{}> ", prompt);
+    print!("{}> ", prompt);
     flush();
     match stdin().read_line(&mut user_input) {
         Ok(_) => return user_input.trim().to_lowercase().to_string(),
