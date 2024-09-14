@@ -1,7 +1,7 @@
 use rusqlite::Result;
 use database::query;
 use crate::database::cloud::{fetch, has_internet_access, sync, Database};
-use crate::database::{self, insert};
+use crate::database::{self, delete, insert};
 use crate::helper::flush;
 use std::io::stdin;
 use super::commands::Command;
@@ -17,6 +17,8 @@ pub fn match_enums(user_input: String) -> Command {
         "list all ingredients" => Command::ListAllIngredients,
         "i have" => Command::IHave,
         "recipe of" => Command::RecipeOf,
+        "delete ingredient from recipe" => Command::DeleteIngredientFromRecipe,
+        "delete dish" => Command::DeleteDish,
         "fetch database" => Command::FetchDatabase,
         "sync database" => Command::SyncDatabase,
         "help" => Command::Help,
@@ -35,6 +37,8 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
         Command::ListAllIngredients => query::all_ingredients(),
         Command::IHave => query::dish_by_ingredients::get_dishes(),
         Command::RecipeOf => query::recipe_by_dish_name(),
+        Command::DeleteIngredientFromRecipe => delete::ingredient_from_recipe().await,
+        Command::DeleteDish => Ok(()),
         Command::FetchDatabase => {
             if has_internet_access().await {
                 fetch(Database::Main).await.expect("Error fetching database");
@@ -73,6 +77,8 @@ fn list_all_commands() {
         Command::ListAllIngredients.to_str(),
         Command::IHave.to_str(),
         Command::RecipeOf.to_str(),
+        Command::DeleteIngredientFromRecipe.to_str(),
+        Command::DeleteDish.to_str(),
         Command::FetchDatabase.to_str(),
         Command::SyncDatabase.to_str(),
         Command::Help.to_str(),

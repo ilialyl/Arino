@@ -15,8 +15,8 @@ pub async fn ingredient() -> Result<()> {
     }
 
     let conn = get_connection();
-    let name = prompt("Name");
 
+    let name = prompt("Name");
     if name.is_empty() {
         return Ok(());
     }
@@ -129,7 +129,7 @@ pub async fn dish() -> Result<()> {
     let mut stmt = conn.prepare("INSERT INTO dishes (name) VALUES (?1);")?;
     stmt.execute([&dish_name])?;
     println!("Inserted {dish_name} successfully. Do you want to add recipe now?");
-    if prompt("Y/N") == "y" {
+    if prompt("[Y/N]") == "y" {
         match recipe(Some(dish_name)).await {
             Ok(_) => {},
             Err(e) => eprintln!("{e}"),
