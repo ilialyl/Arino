@@ -76,6 +76,54 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
+    // Check if the access token is valid, and refresh it if necessary
+    if !check_access_token_validity().await? {
+        request_access_token().await?;
+    }
+
+    let access_token = match retrieve_access_token() {
+        Ok(s) => s,
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    };
+    
+    // The file you want to upload
+    let file_path = "database.db";
+    let destination_path = "/database_backup.db"; // Where to upload in Dropbox
+
+    // Read the file content
+    let mut file = File::open(file_path)?;
+    let mut file_content = Vec::new();
+    file.read_to_end(&mut file_content)?;
+
+    // Set up the request client
+    let client = Client::new();
+
+    // Send the file to Dropbox
+    let response = client
+        .post("https://content.dropboxapi.com/2/files/upload")
+        .header("Authorization", format!("Bearer {}", access_token))
+        .header("Dropbox-API-Arg", format!(r#"{{"path": "{}","mode": "add","autorename": true,"mute": false,"strict_conflict": false}}"#, destination_path))
+        .header("Content-Type", "application/octet-stream")
+        .body(file_content)
+        .send()
+        .await?;
+
+    // Check if the upload was successful
+    if response.status().is_success() {
+        println!("Database backed up successfully");
+    } else {
+        let error_message = response.text().await?;
+        println!("Database backup failed: {}", error_message);
+    }
+
+    Ok(())
+}
+
+
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     // Your Dropbox access token
     if !check_access_token_validity().await? {

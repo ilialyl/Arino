@@ -1,6 +1,6 @@
 use rusqlite::Result;
 use database::query;
-use crate::database::cloud::{fetch, has_internet_access, sync, Database};
+use crate::database::cloud::{backup, fetch, has_internet_access, sync, Database};
 use crate::database::{self, delete, insert};
 use crate::helper::flush;
 use std::io::stdin;
@@ -21,6 +21,7 @@ pub fn match_enums(user_input: String) -> Command {
         "delete dish" => Command::DeleteDish,
         "fetch database" => Command::FetchDatabase,
         "sync database" => Command::SyncDatabase,
+        "backup database" => Command::BackupDatabase,
         "help" => Command::Help,
         "quit" => Command::Quit,
         _ => Command::Unknown
@@ -55,6 +56,14 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
             }
             Ok(())
         },
+        Command::BackupDatabase => {
+            if has_internet_access().await {
+                backup().await.expect("Error backing up database");
+            } else {
+                eprintln!("Internet access is required to backup database to cloud");
+            }
+            Ok(())
+        },
         Command::Help => {
             list_all_commands();
             Ok(())
@@ -81,6 +90,7 @@ fn list_all_commands() {
         Command::DeleteDish.to_str(),
         Command::FetchDatabase.to_str(),
         Command::SyncDatabase.to_str(),
+        Command::BackupDatabase.to_str(),
         Command::Help.to_str(),
         Command::Quit.to_str(),
         Command::Unknown.to_str(),
