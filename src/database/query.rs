@@ -101,43 +101,108 @@ pub fn recipe_by_dish_name() -> Result<()> {
 pub fn all_ingredients() -> Result<()> {
     let conn = get_connection();
 
-    let mut select_ingredients_stmt = conn.prepare("SELECT * FROM ingredients;")?;
-    let ingredients_iter = select_ingredients_stmt.query_map([], |row| {
-        Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))
-    })?;
-
-    let mut table = Table::new();
-    table.add_row(Row::new(vec![
-        Cell::new("ID"),
-        Cell::new("Name"),
-        Cell::new("Lifespan"),
-        Cell::new("Price"),
-    ]));
-
-    for ingredient in ingredients_iter {
-        let (id, name, lifespan) = ingredient?;
-        let mut price_query = conn.prepare("SELECT price from prices where ingredient_id = ?1;")?;
-        let prices_iter = price_query.query_map([id], |row| {
-            Ok(row.get::<_, f32>(0)?)
-        })?;
-
-        let mut prices: Vec<f32> = Vec::new();
-
-        for price in prices_iter {
-            prices.push(price?);
+    let (category_name, category_id) = loop {
+        let input_category_name = prompt("Category (all, vegetable, fruit, dairy, meat, condiment, grain)");
+        if input_category_name.is_empty() {
+            return Ok(());
         }
 
-        let mean_price = calculate_mean(prices);
+        if input_category_name == "all" {
+            break (input_category_name, 0);
+        }
 
+        let retrieved_category_id: u32 = match conn.query_row("SELECT id FROM categories WHERE name = ?1;", [&input_category_name], |row| row.get(0)) {
+            Ok(id) => id,
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                eprintln!("Invalid category");
+                continue;
+            },
+            Err(e) => {
+                eprintln!("Error: {e}");
+                continue;
+            }
+        };
+        break (input_category_name, retrieved_category_id);
+    };
+
+    if category_id > 0 {
+        let mut select_ingredients_stmt = conn.prepare("SELECT * FROM ingredients WHERE category_id = ?1;")?;
+        let ingredients_iter = select_ingredients_stmt.query_map([category_id], |row| {
+            Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))
+        })?;
+
+        let mut table = Table::new();
         table.add_row(Row::new(vec![
-            Cell::new(&id.to_string()),
-            Cell::new(&name),
-            Cell::new(&lifespan),
-            Cell::new(&format!("${mean_price:.2}")),
+            Cell::new("ID"),
+            Cell::new(&format!("Name ({category_name})")),
+            Cell::new("Lifespan"),
+            Cell::new("Price"),
         ]));
+    
+        for ingredient in ingredients_iter {
+            let (id, name, lifespan) = ingredient?;
+            let mut price_query = conn.prepare("SELECT price from prices where ingredient_id = ?1;")?;
+            let prices_iter = price_query.query_map([id], |row| {
+                Ok(row.get::<_, f32>(0)?)
+            })?;
+    
+            let mut prices: Vec<f32> = Vec::new();
+    
+            for price in prices_iter {
+                prices.push(price?);
+            }
+    
+            let mean_price = calculate_mean(prices);
+    
+            table.add_row(Row::new(vec![
+                Cell::new(&id.to_string()),
+                Cell::new(&name),
+                Cell::new(&lifespan),
+                Cell::new(&format!("${mean_price:.2}")),
+            ]));
+        }
+    
+        table.printstd();
     }
+    else {
+        let mut select_ingredients_stmt = conn.prepare("SELECT * FROM ingredients")?;
+        let ingredients_iter = select_ingredients_stmt.query_map([], |row| {
+            Ok((row.get::<_, i32>(0)?, row.get::<_, String>(2)?, row.get::<_, String>(3)?))
+        })?;
 
-    table.printstd();
+        let mut table = Table::new();
+        table.add_row(Row::new(vec![
+            Cell::new("ID"),
+            Cell::new("Name"),
+            Cell::new("Lifespan"),
+            Cell::new("Price"),
+        ]));
+    
+        for ingredient in ingredients_iter {
+            let (id, name, lifespan) = ingredient?;
+            let mut price_query = conn.prepare("SELECT price from prices where ingredient_id = ?1;")?;
+            let prices_iter = price_query.query_map([id], |row| {
+                Ok(row.get::<_, f32>(0)?)
+            })?;
+    
+            let mut prices: Vec<f32> = Vec::new();
+    
+            for price in prices_iter {
+                prices.push(price?);
+            }
+    
+            let mean_price = calculate_mean(prices);
+    
+            table.add_row(Row::new(vec![
+                Cell::new(&id.to_string()),
+                Cell::new(&name),
+                Cell::new(&lifespan),
+                Cell::new(&format!("${mean_price:.2}")),
+            ]));
+        }
+    
+        table.printstd();
+    }
 
     Ok(())
 }

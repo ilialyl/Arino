@@ -263,7 +263,6 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
         println!("Inserted: {ingredient_added_string} into {dish_name}'s recipe");
     }
     
-
     if !chained_operation {
         match sync().await {
             Ok(_) => {},
