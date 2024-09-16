@@ -21,7 +21,7 @@ pub async fn ingredient() -> Result<()> {
         return Ok(());
     }
 
-    let (category_id, category_name) = loop {
+    let (category_name, category_id) = loop {
         let input_category_name = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
         if input_category_name.is_empty() {
             return Ok(());
@@ -38,7 +38,7 @@ pub async fn ingredient() -> Result<()> {
                 continue;
             }
         };
-        break (retrieved_category_id, input_category_name);
+        break (input_category_name, retrieved_category_id);
     };
 
     let lifespan = prompt("Lifespan (in _y_mo_d_h_m_s)");
@@ -73,19 +73,25 @@ pub async fn price() -> Result<()> {
 
     let conn = get_connection();
 
-    let ingredient_name = prompt("Ingredient name");
+    let (ingredient_name, ingredient_id) = loop {
+        let input_ingredient_name = prompt("Ingredient name");
+        if input_ingredient_name.is_empty() {
+            return Ok(());
+        }
 
-    if ingredient_name.is_empty() {
-        return Ok(());
-    }
-
-    let retrieved_ingredient_name: String = conn.query_row("SELECT name FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
-    if retrieved_ingredient_name.is_empty() {
-        eprintln!("Invalid ingredient name");
-        return Ok(());
-    }
-
-    let ingredient_id: u32 = conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0))?;
+        let retrieved_ingredient_id: u32 = match conn.query_row("SELECT name FROM ingredients WHERE name = ?1;", [&input_ingredient_name], |row| row.get(0)) {
+            Ok(id) => id,
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                eprintln!("Invalid category");
+                continue;
+            },
+            Err(e) => {
+                eprintln!("Error: {e}");
+                continue;
+            }
+        };
+        break (input_ingredient_name, retrieved_ingredient_id);
+    };
 
     let input_price = prompt("Price per kg in AUD");
     let input_price_float = match input_price.trim().parse::<f32>() {
