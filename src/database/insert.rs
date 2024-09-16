@@ -16,30 +16,36 @@ pub async fn ingredient() -> Result<()> {
 
     let conn = get_connection();
 
-    let name = prompt("Name");
-    if name.is_empty() {
+    let ingredient_name = prompt("Name");
+    if ingredient_name.is_empty() {
         return Ok(());
     }
 
-    let category = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
+    let (category_id, category_name) = loop {
+        let input_category_name = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
+        if input_category_name.is_empty() {
+            return Ok(());
+        }
 
-    if category.is_empty() {
-        return Ok(());
-    }
-
-    let retrieved_category_name: String = conn.query_row("SELECT name FROM categories WHERE name = ?1;", [&category], |row| row.get(0))?;
-    if retrieved_category_name.is_empty() {
-        eprintln!("Invalid category");
-        return Ok(());
-    }
-
-    let category_id: u32 = conn.query_row("SELECT id FROM categories WHERE name = ?1;", [&category], |row| row.get(0))?;
+        let retrieved_category_id: u32 = match conn.query_row("SELECT id FROM categories WHERE name = ?1;", [&input_category_name], |row| row.get(0)) {
+            Ok(id) => id,
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                eprintln!("Invalid category");
+                continue;
+            },
+            Err(e) => {
+                eprintln!("Error: {e}");
+                continue;
+            }
+        };
+        break (retrieved_category_id, input_category_name);
+    };
 
     let lifespan = prompt("Lifespan (in _y_mo_d_h_m_s)");
 
     let mut stmt = conn.prepare("INSERT INTO ingredients (category_id, name, lifespan) VALUES (?1, ?2, ?3);")?;
-    stmt.execute((category_id, &name, &lifespan))?;
-    println!("Inserted: {} {} {} successfully", name, category, lifespan);
+    stmt.execute((category_id, &ingredient_name, &lifespan))?;
+    println!("Inserted: {} {} {} successfully", ingredient_name, category_name, lifespan);
 
     match sync().await {
         Ok(_) => {},
