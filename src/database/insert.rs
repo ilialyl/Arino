@@ -257,9 +257,12 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
         ingredients_added_vec.push(ingredient_name);
     }
 
-    let ingredient_added_string = ingredients_added_vec.join(", ");
+    if !ingredients_added_vec.is_empty() {
+        let ingredient_added_string = ingredients_added_vec.join(", ");
+
+        println!("Inserted: {ingredient_added_string} into {dish_name}'s recipe");
+    }
     
-    println!("Inserted: {ingredient_added_string} into {dish_name}'s recipe");
 
     if !chained_operation {
         match sync().await {

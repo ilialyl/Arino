@@ -85,7 +85,7 @@ pub fn recipe_by_dish_name() -> Result<()> {
     let mut table = Table::new();
     table.add_row(Row::new(vec![
         Cell::new("Ingredient"),
-        Cell::new("Quantity"),
+        Cell::new("Quantity (normally g)"),
     ]));
     for (name, quantity) in ingredient_names.iter().zip(ingredient_quantities.iter()) {
         table.add_row(Row::new(vec![
