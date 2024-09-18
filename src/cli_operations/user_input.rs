@@ -1,3 +1,4 @@
+use bimap::BiMap;
 use rusqlite::Result;
 use database::query;
 use crate::database::cloud::{backup, fetch, has_internet_access, sync, Database};
@@ -7,28 +8,15 @@ use std::io::stdin;
 use super::commands::Command;
 
 
-pub fn match_enums(user_input: String) -> Command {
-    match user_input.trim() {
-        "new ingredient" => Command::NewIngredient,
-        "add price" => Command::AddPrice,
-        "new dish" => Command::NewDish,
-        "add recipe" => Command::AddRecipe,
-        "list all dishes" => Command::ListAllDishes,
-        "list all ingredients" => Command::ListAllIngredients,
-        "i have" => Command::IHave,
-        "recipe of" => Command::RecipeOf,
-        "delete ingredient from recipe" => Command::DeleteIngredientFromRecipe,
-        "delete dish" => Command::DeleteDish,
-        "fetch database" => Command::FetchDatabase,
-        "sync database" => Command::SyncDatabase,
-        "backup database" => Command::BackupDatabase,
-        "help" => Command::Help,
-        "quit" => Command::Quit,
-        _ => Command::Unknown
+pub fn to_command_enum(user_input: String, command_bimap: &BiMap<Command, String>) -> Command {
+    if let Some(command_enum) = command_bimap.get_by_right(&user_input) {
+        command_enum.clone()
+    } else {
+        Command::Unknown
     }
 }
 
-pub async fn match_commands(command_enum: Command) -> Result<()> {
+pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command, String>) -> Result<()> {
     match command_enum {
         Command::NewIngredient => insert::ingredient().await,
         Command::AddPrice => insert::price().await,
@@ -40,6 +28,7 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
         Command::RecipeOf => query::recipe_by_dish_name(),
         Command::DeleteIngredientFromRecipe => delete::ingredient_from_recipe().await,
         Command::DeleteDish => delete::dish().await,
+        Command::DeleteIngredient => delete::ingredient().await,
         Command::FetchDatabase => {
             if has_internet_access().await {
                 fetch(Database::Main).await.expect("Error fetching database");
@@ -65,7 +54,7 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
             Ok(())
         },
         Command::Help => {
-            list_all_commands();
+            list_all_commands(command_bimap);
             Ok(())
         },
         Command::Quit => std::process::exit(0),
@@ -76,28 +65,8 @@ pub async fn match_commands(command_enum: Command) -> Result<()> {
     }
 }
 
-fn list_all_commands() {
-    let all_commands = vec![
-        Command::NewIngredient.to_str(),
-        Command::AddPrice.to_str(),
-        Command::NewDish.to_str(),
-        Command::AddRecipe.to_str(),
-        Command::ListAllDishes.to_str(),
-        Command::ListAllIngredients.to_str(),
-        Command::IHave.to_str(),
-        Command::RecipeOf.to_str(),
-        Command::DeleteIngredientFromRecipe.to_str(),
-        Command::DeleteDish.to_str(),
-        Command::FetchDatabase.to_str(),
-        Command::SyncDatabase.to_str(),
-        Command::BackupDatabase.to_str(),
-        Command::Help.to_str(),
-        Command::Quit.to_str(),
-        Command::Unknown.to_str(),
-    ];
-    for command in all_commands {
-        println!("-- {command}");
-    }
+fn list_all_commands(command_bimap: &BiMap<Command, String>) {
+    command_bimap.right_values().for_each(|s| println!("-- {s}"));
 }
 
 pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{

@@ -138,3 +138,60 @@ pub async fn dish() -> Result<()> {
 
     Ok(())
 }
+
+pub async fn ingredient() -> Result<()> {
+    if !has_internet_access().await {
+        return Ok(());
+    }
+    
+    match fetch(Database::Main).await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
+    let conn = get_connection();
+
+    let ingredient_id = loop {
+        let ingredient_name = prompt("Ingredient name");
+        if ingredient_name.is_empty() {
+            return Ok(());
+        }
+
+        let retrieved_ingredient_id: u32 = match conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0)) {
+            Ok(id) => id,
+            Err(rusqlite::Error::QueryReturnedNoRows) => {
+                eprintln!("Invalid ingredient name");
+                continue;
+            },
+            Err(e) => {
+                eprintln!("Error: {e}");
+                continue;
+            }
+        };
+        break retrieved_ingredient_id;
+    };
+
+    println!("Are you sure you want to delete this ingredient from the database?");
+    if prompt("[Y/N]") != "y" {
+        println!("Deletion aborted");
+        return Ok(());
+    }
+    
+    let mut stmt = conn.prepare("DELETE FROM ingredients WHERE id = ?1;")?;
+    stmt.execute([&ingredient_id])?;
+
+    match sync().await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
+
+
+    Ok(())
+}
