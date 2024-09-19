@@ -2,6 +2,8 @@ pub mod insert;
 pub mod delete;
 pub mod query;
 pub mod cloud;
+pub mod modify;
+pub mod get;
 
 use rusqlite::Connection;
 use std::fs::metadata;

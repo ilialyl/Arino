@@ -1,10 +1,8 @@
 use rusqlite::Result;
 
-use crate::{cli_operations::user_input::prompt, database::cloud::sync};
+use crate::{cli_operations::user_input::prompt, database::{cloud::sync, get}};
 
 use super::{cloud::{fetch, has_internet_access, Database}, get_connection};
-
-
 
 pub async fn ingredient_from_recipe() -> Result<()> {
     if !has_internet_access().await {
@@ -21,44 +19,14 @@ pub async fn ingredient_from_recipe() -> Result<()> {
 
     let conn = get_connection();
 
-    let dish_id = loop {
-        let dish_name = prompt("Dish name");
-        if dish_name.is_empty() {
-            return Ok(());
-        }
-
-        let retrieved_dish_id: u32 = match conn.query_row("SELECT id FROM dishes WHERE name = ?1;", [&dish_name], |row| row.get(0)) {
-            Ok(id) => id,
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
-                eprintln!("Invalid dish name");
-                continue;
-            },
-            Err(e) => {
-                eprintln!("Error: {e}");
-                continue;
-            }
-        };
-        break retrieved_dish_id;
+    let dish_id = match get::dish_id(&conn) {
+        Some(id) => id,
+        None => return Ok(()),
     };
 
-    let ingredient_id = loop {
-        let ingredient_name = prompt("Ingredient name");
-        if ingredient_name.is_empty() {
-            return Ok(());
-        }
-
-        let retrieved_ingredient_id: u32 = match conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0)) {
-            Ok(id) => id,
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
-                eprintln!("Invalid ingredient name");
-                continue;
-            },
-            Err(e) => {
-                eprintln!("Error: {e}");
-                continue;
-            }
-        };
-        break retrieved_ingredient_id;
+    let ingredient_id = match get::ingredient_id(&conn) {
+        Some(id) => id,
+        None => return Ok(()),
     };
 
     println!("Are you sure you want to delete this ingredient from this recipe?");
@@ -96,24 +64,9 @@ pub async fn dish() -> Result<()> {
 
     let conn = get_connection();
 
-    let dish_id = loop {
-        let dish_name = prompt("Dish name");
-        if dish_name.is_empty() {
-            return Ok(());
-        }
-
-        let retrieved_dish_id: u32 = match conn.query_row("SELECT id FROM dishes WHERE name = ?1;", [&dish_name], |row| row.get(0)) {
-            Ok(id) => id,
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
-                eprintln!("Invalid dish name");
-                continue;
-            },
-            Err(e) => {
-                eprintln!("Error: {e}");
-                continue;
-            }
-        };
-        break retrieved_dish_id;
+    let dish_id = match get::dish_id(&conn) {
+        Some(id) => id,
+        None => return Ok(()),
     };
 
     println!("Are you sure you want to delete this dish along with its recipe?");
@@ -154,24 +107,9 @@ pub async fn ingredient() -> Result<()> {
 
     let conn = get_connection();
 
-    let ingredient_id = loop {
-        let ingredient_name = prompt("Ingredient name");
-        if ingredient_name.is_empty() {
-            return Ok(());
-        }
-
-        let retrieved_ingredient_id: u32 = match conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&ingredient_name], |row| row.get(0)) {
-            Ok(id) => id,
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
-                eprintln!("Invalid ingredient name");
-                continue;
-            },
-            Err(e) => {
-                eprintln!("Error: {e}");
-                continue;
-            }
-        };
-        break retrieved_ingredient_id;
+    let ingredient_id = match get::ingredient_id(&conn) {
+        Some(id) => id,
+        None => return Ok(()),
     };
 
     println!("Are you sure you want to delete this ingredient from the database?");
@@ -190,8 +128,6 @@ pub async fn ingredient() -> Result<()> {
             return Ok(());
         },
     }
-
-
 
     Ok(())
 }
