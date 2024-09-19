@@ -4,7 +4,7 @@ use rusqlite::{Connection, Result};
 use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 use prettytable::{Cell, Row, Table};
 
-use super::get_connection;
+use super::{get, get_connection};
 
 pub fn all_dish_names() -> Result<()> {
     let conn = get_connection();
@@ -216,7 +216,7 @@ pub fn specific_ingredient(ingredient_id: u32) -> Result<()> {
         let category_id: u32 = row.get(1)?;  
         let name: String = row.get(2)?;  
         let lifespan: String = row.get(3)?; 
-        let price = match price(ingredient_id, &conn) {
+        let price = match get::price(ingredient_id, &conn) {
             Some(num) => num,
             None => f32::NAN,
         };
@@ -247,35 +247,3 @@ pub fn specific_ingredient(ingredient_id: u32) -> Result<()> {
     Ok(())
 }
 
-fn price(ingredient_id: u32, conn: &Connection) -> Option<f32> {
-    let mut price_query = match conn.prepare("SELECT price FROM prices WHERE ingredient_id = ?1;") {
-        Ok(query) => query,  
-        Err(e) => {
-            eprintln!("Error preparing query: {e}");
-            return None; 
-        }
-    };
-
-    let prices_iter = match price_query.query_map([ingredient_id], |row| {
-        Ok(row.get::<_, f32>(0)?)  
-    }) {
-        Ok(iter) => iter,  
-        Err(e) => {
-            eprintln!("Error executing query: {e}");
-            return None; 
-        }
-    };
-
-    let mut prices: Vec<f32> = Vec::new();
-    for price in prices_iter {
-        match price {
-            Ok(p) => prices.push(p),  
-            Err(e) => {
-                eprintln!("Error retrieving price: {e}");
-                return None; 
-            }
-        }
-    }
-
-    Some(calculate_mean(prices)) 
-}

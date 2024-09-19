@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::cli_operations::user_input::prompt;
+use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 
 pub fn dish_id(conn: &Connection) -> Option<u32> {
     let dish_id = loop {
@@ -74,4 +74,36 @@ pub fn category_name_and_id(conn: &Connection) -> Option<(String, u32)> {
     Some((category_name, category_id))
 }
 
+pub fn price(ingredient_id: u32, conn: &Connection) -> Option<f32> {
+    let mut price_query = match conn.prepare("SELECT price FROM prices WHERE ingredient_id = ?1;") {
+        Ok(query) => query,  
+        Err(e) => {
+            eprintln!("Error preparing query: {e}");
+            return None; 
+        }
+    };
+
+    let prices_iter = match price_query.query_map([ingredient_id], |row| {
+        Ok(row.get::<_, f32>(0)?)  
+    }) {
+        Ok(iter) => iter,  
+        Err(e) => {
+            eprintln!("Error executing query: {e}");
+            return None; 
+        }
+    };
+
+    let mut prices: Vec<f32> = Vec::new();
+    for price in prices_iter {
+        match price {
+            Ok(p) => prices.push(p),  
+            Err(e) => {
+                eprintln!("Error retrieving price: {e}");
+                return None; 
+            }
+        }
+    }
+
+    Some(calculate_mean(prices)) 
+}
 
