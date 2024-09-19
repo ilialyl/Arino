@@ -1,6 +1,6 @@
 pub mod dish_by_ingredients;
 
-use rusqlite::{Connection, Result};
+use rusqlite::Result;
 use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 use prettytable::{Cell, Row, Table};
 
