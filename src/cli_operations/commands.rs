@@ -19,6 +19,7 @@ pub enum Command {
     Quit,
     Help,
     Unknown,
+    UpdateIngredient,
 }
 
 pub fn get_command_bimap() -> BiMap<Command, String> {
@@ -40,6 +41,7 @@ pub fn get_command_bimap() -> BiMap<Command, String> {
     bimap.insert(Command::Help, "help".to_string());
     bimap.insert(Command::Quit, "quit".to_string());
     bimap.insert(Command::Unknown, "unknown".to_string());
+    bimap.insert(Command::UpdateIngredient, "update ingredient".to_string());
 
     bimap
 }

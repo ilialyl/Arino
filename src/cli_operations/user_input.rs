@@ -2,7 +2,7 @@ use bimap::BiMap;
 use rusqlite::Result;
 use database::query;
 use crate::database::cloud::{backup, fetch, has_internet_access, sync, Database};
-use crate::database::{self, delete, insert};
+use crate::database::{self, delete, insert, modify};
 use crate::helper::flush;
 use std::io::stdin;
 use super::commands::Command;
@@ -61,6 +61,9 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
         Command::Unknown => {
             eprintln!("Unknown command");
             Ok(())
+        }
+        Command::UpdateIngredient => {
+            modify::ingredient().await
         }
     }
 }

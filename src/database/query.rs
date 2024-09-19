@@ -1,6 +1,6 @@
 pub mod dish_by_ingredients;
 
-use rusqlite::Result;
+use rusqlite::{Connection, Result};
 use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 use prettytable::{Cell, Row, Table};
 
@@ -205,4 +205,77 @@ pub fn all_ingredients() -> Result<()> {
     }
 
     Ok(())
+}
+
+pub fn specific_ingredient(ingredient_id: u32) -> Result<()> {
+    let conn = get_connection();
+
+    let mut stmt = conn.prepare("SELECT id, category_id, name, lifespan FROM ingredients WHERE id = ?1")?;
+    stmt.query_row([ingredient_id], |row| {
+        let id: u32 = row.get(0)?;  
+        let category_id: u32 = row.get(1)?;  
+        let name: String = row.get(2)?;  
+        let lifespan: String = row.get(3)?; 
+        let price = match price(ingredient_id, &conn) {
+            Some(num) => num,
+            None => f32::NAN,
+        };
+
+        let mut table = Table::new();
+
+        table.add_row(Row::new(vec![
+            Cell::new("ID"),
+            Cell::new("Category ID"),
+            Cell::new("Name"),
+            Cell::new("Lifespan"),
+            Cell::new("Mean Price"),
+        ]));
+
+        table.add_row(Row::new(vec![
+            Cell::new(&id.to_string()),
+            Cell::new(&category_id.to_string()),
+            Cell::new(&name),
+            Cell::new(&lifespan),
+            Cell::new(&format!("${price:.2}")),
+        ]));
+
+        table.printstd();
+
+        Ok(())
+    })?;
+
+    Ok(())
+}
+
+fn price(ingredient_id: u32, conn: &Connection) -> Option<f32> {
+    let mut price_query = match conn.prepare("SELECT price FROM prices WHERE ingredient_id = ?1;") {
+        Ok(query) => query,  
+        Err(e) => {
+            eprintln!("Error preparing query: {e}");
+            return None; 
+        }
+    };
+
+    let prices_iter = match price_query.query_map([ingredient_id], |row| {
+        Ok(row.get::<_, f32>(0)?)  
+    }) {
+        Ok(iter) => iter,  
+        Err(e) => {
+            eprintln!("Error executing query: {e}");
+            return None; 
+        }
+    };
+
+    let mut prices: Vec<f32> = Vec::new();
+    for price in prices_iter {
+        match price {
+            Ok(p) => prices.push(p),  
+            Err(e) => {
+                eprintln!("Error retrieving price: {e}");
+                return None; 
+            }
+        }
+    }
+
+    Some(calculate_mean(prices)) 
 }
