@@ -1,6 +1,6 @@
 use bimap::BiMap;
 use rusqlite::Result;
-use database::query;
+use database::show;
 use crate::database::cloud::{backup, fetch, has_internet_access, sync, Database};
 use crate::database::{self, delete, insert, modify};
 use crate::helper::flush;
@@ -22,10 +22,10 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
         Command::AddPrice => insert::price().await,
         Command::NewDish => insert::dish().await,
         Command::AddRecipe => insert::recipe(None).await,
-        Command::ListAllDishes => query::all_dish_names(),
-        Command::ListAllIngredients => query::all_ingredients(),
-        Command::IHave => query::dish_by_ingredients::get_dishes(),
-        Command::RecipeOf => query::recipe_by_dish_name(),
+        Command::ListAllDishes => show::all_dish_names(),
+        Command::ListAllIngredients => show::all_ingredients(),
+        Command::IHave => show::dish_by_ingredients::get_dishes(),
+        Command::RecipeOf => show::recipe_by_dish_name(),
         Command::DeleteIngredientFromRecipe => delete::ingredient_from_recipe().await,
         Command::DeleteDish => delete::dish().await,
         Command::DeleteIngredient => delete::ingredient().await,

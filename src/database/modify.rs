@@ -2,7 +2,7 @@ use rusqlite::Result;
 
 use crate::{cli_operations::user_input::prompt, database::cloud::sync};
 
-use super::{cloud::{fetch, has_internet_access, Database}, get, get_connection, query};
+use super::{cloud::{fetch, has_internet_access, Database}, get, get_connection, show};
 
 pub async fn ingredient() -> Result<()> {
     if !has_internet_access().await {
@@ -47,7 +47,7 @@ pub async fn ingredient() -> Result<()> {
     }
 
     println!("Ingredient Updated");
-    match query::specific_ingredient(ingredient_id) {
+    match show::specific_ingredient(ingredient_id) {
         Ok(_) => {},
         Err(e) => eprintln!("Error: {e}"),
     }

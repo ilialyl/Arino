@@ -1,6 +1,6 @@
 pub mod insert;
 pub mod delete;
-pub mod query;
+pub mod show;
 pub mod cloud;
 pub mod modify;
 pub mod get;
