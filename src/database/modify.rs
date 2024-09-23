@@ -83,7 +83,35 @@ pub async fn dish_name() -> Result<()> {
         None => return Ok(()),
     };
 
-    let new_dish_name = prompt("New dish name");
+    let old_name = match get::dish_name(dish_id, &conn) {
+        Some(name) => name,
+        None => return Ok(()),
+    };
+
+    let new_name = prompt("New dish name");
+    if new_name.is_empty() {
+        return Ok(())
+    }
+
+    let mut update_name_stmt = conn.prepare("UPDATE dishes SET name = ?1 WHERE id = ?2")?;
+    update_name_stmt.execute((&new_name, dish_id))?;
+
+    let retrieved_new_name = match get::dish_name(dish_id, &conn) {
+        Some(name) => name,
+        None => {
+            return Ok(())
+        }
+    };
+
+    println!("\"{old_name}\" has been updated to \"{retrieved_new_name}\"");
+
+    match sync().await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
 
     Ok(())
 }

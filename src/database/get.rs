@@ -26,6 +26,22 @@ pub fn dish_id(conn: &Connection) -> Option<u32> {
     Some(dish_id)
 }
 
+pub fn dish_name(dish_id: u32, conn: &Connection) -> Option<String> {
+    let retrieved_dish_name: Option<String> = match conn.query_row("SELECT name FROM dishes WHERE id = ?1;", [&dish_id], |row| row.get(0)) {
+        Ok(id) => id,
+        Err(rusqlite::Error::QueryReturnedNoRows) => {
+            eprintln!("Invalid dish id");
+            None
+        },
+        Err(e) => {
+            eprintln!("Error: {e}");
+            None
+        }
+    };
+
+    retrieved_dish_name
+}
+
 pub fn ingredient_id(conn: &Connection) -> Option<u32> {
     let ingredient_id = loop {
         let ingredient_name = prompt("Ingredient name");

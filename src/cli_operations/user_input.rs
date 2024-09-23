@@ -65,6 +65,9 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
         Command::UpdateIngredient => {
             modify::ingredient().await
         }
+        Command::UpdateDishName => {
+            modify::dish_name().await
+        }
     }
 }
 
