@@ -24,14 +24,14 @@ pub async fn ingredient() -> Result<()> {
         None => return Ok(()),
     };
 
-    let new_name = prompt("New Name");
+    let new_name = prompt("New name");
 
     if !new_name.is_empty() {
         let mut update_name_stmt = conn.prepare("UPDATE ingredients SET name = ?1 WHERE id = ?2")?;
         update_name_stmt.execute((&new_name, &ingredient_id))?;
     }
 
-    let new_lifespan = prompt("New Lifespan");
+    let new_lifespan = prompt("New lifespan");
 
     if !new_lifespan.is_empty() {
         let mut update_lifespan_stmt = conn.prepare("UPDATE ingredients SET name = ?1 WHERE id = ?2")?;
@@ -59,6 +59,31 @@ pub async fn ingredient() -> Result<()> {
             return Ok(());
         },
     }
+
+    Ok(())
+}
+
+pub async fn dish_name() -> Result<()> {
+    if !has_internet_access().await {
+        return Ok(());
+    }
+    
+    match fetch(Database::Main).await {
+        Ok(_) => {},
+        Err(e) => {
+            eprintln!("{e}");
+            return Ok(());
+        },
+    }
+
+    let conn = get_connection();
+
+    let dish_id = match get::dish_id(&conn) {
+        Some(id) => id,
+        None => return Ok(()),
+    };
+
+    let new_dish_name = prompt("New dish name");
 
     Ok(())
 }
