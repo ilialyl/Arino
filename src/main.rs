@@ -24,7 +24,8 @@ async fn main() {
         }
     }
     
-    println!("----Arino----");
+    println!("-----------------Arino-----------------");
+    println!("Type \"help\" for the list of commands");
     let command_bimap = get_command_bimap();
 
     loop {
