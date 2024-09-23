@@ -69,7 +69,9 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
 }
 
 fn list_all_commands(command_bimap: &BiMap<Command, String>) {
-    command_bimap.right_values().for_each(|s| println!("-- {s}"));
+    let mut commands: Vec<_> = command_bimap.right_values().cloned().collect();
+    commands.sort();
+    commands.iter().for_each(|s| println!("-- {s}"));
 }
 
 pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{
