@@ -103,11 +103,7 @@ pub fn all_ingredients() -> Result<()> {
 
     let (category_name, category_id) = loop {
         let input_category_name = prompt("Category (all, vegetable, fruit, dairy, meat, condiment, grain)");
-        if input_category_name.is_empty() {
-            return Ok(());
-        }
-
-        if input_category_name == "all" {
+        if input_category_name.is_empty() || input_category_name == "all" {
             break (input_category_name, 0);
         }
 
