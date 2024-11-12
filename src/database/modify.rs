@@ -1,6 +1,6 @@
 use rusqlite::Result;
 
-use crate::{cli_operations::user_input::prompt, database::cloud::sync};
+use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::cloud::sync};
 
 use super::{cloud::{fetch, has_internet_access, Database}, get, get_connection, show};
 
@@ -90,6 +90,7 @@ pub async fn dish_name() -> Result<()> {
 
     let new_name = prompt("New dish name");
     if new_name.is_empty() {
+        cancel_prompt();
         return Ok(())
     }
 

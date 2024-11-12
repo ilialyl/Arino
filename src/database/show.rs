@@ -48,7 +48,7 @@ pub fn recipe_by_dish_name() -> Result<()> {
     let dish_id = match dish_id_result {
         Ok(id) => id,
         Err(e) => {
-            eprint!("{e}");
+            eprintln!("{e}");
             return Ok(());
         },
     };

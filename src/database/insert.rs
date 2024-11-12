@@ -1,5 +1,5 @@
 use rusqlite::Result;
-use crate::{cli_operations::user_input::prompt, database::{cloud::{fetch, has_internet_access, sync, Database}, get_connection}};
+use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::{cloud::{fetch, has_internet_access, sync, Database}, get_connection}};
 
 pub async fn ingredient() -> Result<()> {
     if !has_internet_access().await {
@@ -18,12 +18,14 @@ pub async fn ingredient() -> Result<()> {
 
     let ingredient_name = prompt("Name");
     if ingredient_name.is_empty() {
+        cancel_prompt();
         return Ok(());
     }
 
     let (category_name, category_id) = loop {
         let input_category_name = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
         if input_category_name.is_empty() {
+            cancel_prompt();
             return Ok(());
         }
 
@@ -76,6 +78,7 @@ pub async fn price() -> Result<()> {
     let (ingredient_name, ingredient_id) = loop {
         let input_ingredient_name = prompt("Ingredient name");
         if input_ingredient_name.is_empty() {
+            cancel_prompt();
             return Ok(());
         }
 
@@ -135,6 +138,7 @@ pub async fn dish() -> Result<()> {
     let dish_name = prompt("Dish name");
 
     if dish_name.is_empty() {
+        cancel_prompt();
         return Ok(());
     }
 
@@ -191,6 +195,7 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
             let (dish_name, dish_id) = loop {
                 let input_dish_name = prompt("Dish name");
                 if input_dish_name.is_empty() {
+                    cancel_prompt();
                     return Ok(());
                 }
         
@@ -239,6 +244,7 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
             let user_input = prompt("Quantity (g)");
 
             if user_input.is_empty() {
+                cancel_prompt();
                 return Ok(());
             }
 

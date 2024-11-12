@@ -173,7 +173,10 @@ pub async fn has_internet_access() -> bool {
 
     match client.get(url).timeout(Duration::from_secs(5)).send().await {
         Ok(response) => response.status().is_success(),
-        Err(_) => false,
+        Err(_) => {
+            println!("Error: Internet access is needed");
+            false
+        },
     }
 }
 
