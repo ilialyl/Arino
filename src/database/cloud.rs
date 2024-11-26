@@ -43,9 +43,8 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
 
-    // The file you want to upload
     let file_path = "database.db";
-    let destination_path = "/database.db"; // Where to upload in Dropbox
+    let destination_path = "/database.db";
 
     // Read the file content
     let mut file = File::open(file_path)?;
