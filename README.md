@@ -11,7 +11,7 @@
 		* Average price will be showed
 * Tell you what Dishes in the database you can make with input ingredients
 ---
-### Nice to Haves
+### Nice to Haves (Not implemented yet)
 * can store data about what ingredients you currently have
 * can display usage priority based on ingredients' lifespans
 ---
