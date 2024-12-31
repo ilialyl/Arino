@@ -1,5 +1,3 @@
-# アリの
-> アリの from 有能 which actually reads ゆうのう but who cares
 ## Main Functionalities
 * Store a database of
 	* Dishes
