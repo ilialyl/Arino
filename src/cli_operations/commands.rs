@@ -1,5 +1,6 @@
 use bimap::BiMap;
 
+// An enum of commands
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Command {
     NewIngredient,
@@ -23,6 +24,7 @@ pub enum Command {
     UpdateDishName,
 }
 
+// Creates and returns a bidirectional map of commands
 pub fn get_command_bimap() -> BiMap<Command, String> {
     let mut bimap = BiMap::new();
     bimap.insert(Command::NewIngredient, "new ingredient".to_string());

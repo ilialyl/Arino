@@ -29,12 +29,12 @@ struct Creditials {
 
 
 pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
-    // Check if the access token is valid, and refresh it if necessary
+    // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
     }
 
-    // Retrieve the access token
+    // Retrieves the access token
     let access_token = match retrieve_access_token() {
         Ok(s) => s,
         Err(e) => {
@@ -46,15 +46,15 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     let file_path = "database.db";
     let destination_path = "/database.db";
 
-    // Read the file content
+    // Reads the file content
     let mut file = File::open(file_path)?;
     let mut file_content = Vec::new();
     file.read_to_end(&mut file_content)?;
 
-    // Set up the request client
+    // Sets up the request client
     let client = Client::new();
 
-    // Send the file to Dropbox with overwrite mode
+    // Sends the file to Dropbox with overwrite mode
     let response = client
         .post("https://content.dropboxapi.com/2/files/upload")
         .header("Authorization", format!("Bearer {}", access_token))
@@ -76,7 +76,7 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
-    // Check if the access token is valid, and refresh it if necessary
+    // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
     }
@@ -89,19 +89,19 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
     
-    // The file you want to upload
+    // Paths to files
     let file_path = "database.db";
     let destination_path = "/database_backup.db"; // Where to upload in Dropbox
 
-    // Read the file content
+    // Reads the file content
     let mut file = File::open(file_path)?;
     let mut file_content = Vec::new();
     file.read_to_end(&mut file_content)?;
 
-    // Set up the request client
+    // Sets up the request client
     let client = Client::new();
 
-    // Send the file to Dropbox
+    // Sends the file to Dropbox
     let response = client
         .post("https://content.dropboxapi.com/2/files/upload")
         .header("Authorization", format!("Bearer {}", access_token))
@@ -111,7 +111,7 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
         .send()
         .await?;
 
-    // Check if the upload was successful
+    // Checks if the upload was successful
     if response.status().is_success() {
         println!("Database backed up successfully");
     } else {
@@ -124,7 +124,7 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
 
 
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
-    // Your Dropbox access token
+    // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
     }
@@ -141,10 +141,10 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
         Database::Backup => "/database_backup.db"
     };
 
-    // Set up the request client
+    // Sets up the request client
     let client = Client::new();
 
-    // Send the download request
+    // Sends the download request
     let response = client
         .post("https://content.dropboxapi.com/2/files/download")
         .header("Authorization", format!("Bearer {}", access_token))
@@ -152,7 +152,7 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
         .send()
         .await?;
 
-    // Check if the download was successful
+    // Checks if the download was successful
     if response.status().is_success() {
         let file_content = response.bytes().await?;
         let mut file = File::create("database.db")?;
@@ -197,30 +197,30 @@ async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
     // Dropbox token endpoint
     let token_url = "https://api.dropboxapi.com/oauth2/token";
 
-    // Prepare form data for the request
+    // Prepares form data for the request
     let mut params = HashMap::new();
     params.insert("refresh_token", refresh_token);
     params.insert("grant_type", "refresh_token".to_string());
     params.insert("client_id", client_id);
     params.insert("client_secret", client_secret);
 
-    // Create an HTTP client
+    // Creates an HTTP client
     let client = Client::new();
 
-    // Send the request to Dropbox API
+    // Sends the request to Dropbox API
     let response = client
         .post(token_url)
         .form(&params)
         .send()
         .await?;
 
-    // Handle response based on status code
+    // Handles response based on status code
     let status = response.status();
     if status.is_success() {
         let token_response: TokenResponse = response.json().await?;
         store_access_token(token_response.access_token);
     } else {
-        // Get the error text from the response
+        // Gets the error text from the response
         let error_text = response.text().await?;
         eprintln!("Failed to request access token: {}", error_text);
     }
@@ -269,17 +269,17 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
     // Dropbox check endpoint (this is a lightweight request)
     let url = "https://api.dropboxapi.com/2/users/get_current_account";
 
-    // Create an HTTP client
+    // Creates an HTTP client
     let client = Client::new();
 
-    // Send the request with the access token
+    // Sends the request with the access token
     let response = client
         .post(url)
         .bearer_auth(access_token)  // Use the access token for authorization
         .send()
         .await?;
 
-    // Check if the response status is successful (2xx)
+    // Checks if the response status is successful (2xx)
     if response.status().is_success() {
         eprint!("Using old access token...");
         flush();

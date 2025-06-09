@@ -2,14 +2,14 @@ use std::collections::{HashMap, HashSet};
 use rusqlite::{Connection, Result};
 use prettytable::{Cell, Row, Table};
 
-use crate::{cli_operations::user_input::{prompt, separate_by}, database::get_connection};
+use crate::{cli_operations::user_input::{prompt, split_to_vec}, database::get_connection};
 
 pub fn get_dishes() -> Result<()> {
     let conn = get_connection();
 
     let input_ingredients = prompt("Ingredients (separated by comma)");
 
-    let input_ingredients_vec = separate_by(",", input_ingredients);
+    let input_ingredients_vec = split_to_vec(",", input_ingredients);
 
     let mut input_ingredient_ids_vec: Vec<u32> = Vec::new(); 
 

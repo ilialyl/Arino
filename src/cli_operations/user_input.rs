@@ -7,7 +7,7 @@ use crate::helper::flush;
 use std::io::stdin;
 use super::commands::Command;
 
-
+// Return command enum from string
 pub fn to_command_enum(user_input: String, command_bimap: &BiMap<Command, String>) -> Command {
     if let Some(command_enum) = command_bimap.get_by_right(&user_input) {
         command_enum.clone()
@@ -16,6 +16,7 @@ pub fn to_command_enum(user_input: String, command_bimap: &BiMap<Command, String
     }
 }
 
+// Match command enums to functions (defines what each command does)
 pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command, String>) -> Result<()> {
     match command_enum {
         Command::NewIngredient => insert::ingredient().await,
@@ -71,19 +72,22 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
     }
 }
 
+// Prints a list of commands by building from bidirectional command map
 fn list_all_commands(command_bimap: &BiMap<Command, String>) {
     let mut commands: Vec<_> = command_bimap.right_values().cloned().collect();
     commands.sort();
     commands.iter().for_each(|s| println!("-- {s}"));
 }
 
-pub fn separate_by(separator: &str, user_input: String) -> Vec<String>{
+// Splits a string to a vector depending on what the separator is.
+pub fn split_to_vec(separator: &str, user_input: String) -> Vec<String>{
     let split_iter = user_input.split(separator);
     let separated_inputs_vec: Vec<String> = split_iter.map(|s| s.trim().to_string()).collect();
 
     separated_inputs_vec
 }
 
+// Prompts user to input something based on the function argument and return the user input.
 pub fn prompt(prompt: &str) -> String {
     let mut user_input = String::new();
     print!("{}> ", prompt);
