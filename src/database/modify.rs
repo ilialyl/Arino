@@ -48,7 +48,7 @@ pub async fn ingredient() -> Result<()> {
     }
 
     println!("Ingredient Updated");
-    match show::specific_ingredient(ingredient_id) {
+    match show::an_ingredient_info(ingredient_id) {
         Ok(_) => {},
         Err(e) => eprintln!("Error: {e}"),
     }

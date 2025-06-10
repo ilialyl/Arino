@@ -6,6 +6,7 @@ use prettytable::{Cell, Row, Table};
 
 use super::{get, get_connection};
 
+// Prints all dishes by their names
 pub fn all_dish_names() -> Result<()> {
     let conn = get_connection();
     let mut select_dish_names_stmt = conn.prepare("Select id, name FROM dishes")?;
@@ -33,6 +34,7 @@ pub fn all_dish_names() -> Result<()> {
     Ok(())
 }
 
+// Prints a recipe by prompting dish name
 pub fn recipe_by_dish_name() -> Result<()> {
     let conn = get_connection();
 
@@ -98,6 +100,7 @@ pub fn recipe_by_dish_name() -> Result<()> {
     Ok(())
 }
 
+// Prints a list of all ingredients
 pub fn all_ingredients() -> Result<()> {
     let conn = get_connection();
 
@@ -203,7 +206,8 @@ pub fn all_ingredients() -> Result<()> {
     Ok(())
 }
 
-pub fn specific_ingredient(ingredient_id: u32) -> Result<()> {
+// Prints information about an ingredient of choice.
+pub fn an_ingredient_info(ingredient_id: u32) -> Result<()> {
     let conn = get_connection();
 
     let mut stmt = conn.prepare("SELECT id, category_id, name, lifespan FROM ingredients WHERE id = ?1")?;
