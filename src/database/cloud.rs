@@ -305,7 +305,7 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
 
 // Retrieves credientials from a file.
 fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
-    let json_string = fs::read_to_string("key.json");
+    let json_string = fs::read_to_string("dropbox_credentials.json");
     let json_string = match json_string {
         Ok(s) => s,
         Err(_) => {
