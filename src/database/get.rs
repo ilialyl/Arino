@@ -2,6 +2,7 @@ use rusqlite::Connection;
 
 use crate::{cli_operations::user_input::prompt, helper::calculate_mean};
 
+// Gets dish ID from dish name
 pub fn dish_id(conn: &Connection) -> Option<u32> {
     let dish_id = loop {
         let dish_name = prompt("Dish name");
@@ -26,6 +27,7 @@ pub fn dish_id(conn: &Connection) -> Option<u32> {
     Some(dish_id)
 }
 
+// Gets dish name from dish ID
 pub fn dish_name(dish_id: u32, conn: &Connection) -> Option<String> {
     let retrieved_dish_name: Option<String> = match conn.query_row("SELECT name FROM dishes WHERE id = ?1;", [&dish_id], |row| row.get(0)) {
         Ok(id) => id,
@@ -42,6 +44,7 @@ pub fn dish_name(dish_id: u32, conn: &Connection) -> Option<String> {
     retrieved_dish_name
 }
 
+// Gets ingredient id from ingredient name
 pub fn ingredient_id(conn: &Connection) -> Option<u32> {
     let ingredient_id = loop {
         let ingredient_name = prompt("Ingredient name");
@@ -66,6 +69,7 @@ pub fn ingredient_id(conn: &Connection) -> Option<u32> {
     Some(ingredient_id)
 }
 
+// Gets category name from user, and return its id and itself.
 pub fn category_name_and_id(conn: &Connection) -> Option<(String, u32)> {
     let (category_name, category_id) = loop {
         let input_category_name = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
@@ -90,6 +94,7 @@ pub fn category_name_and_id(conn: &Connection) -> Option<(String, u32)> {
     Some((category_name, category_id))
 }
 
+// Gets price from ingredient ID
 pub fn price(ingredient_id: u32, conn: &Connection) -> Option<f32> {
     let mut price_query = match conn.prepare("SELECT price FROM prices WHERE ingredient_id = ?1;") {
         Ok(query) => query,  
