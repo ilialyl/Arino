@@ -10,25 +10,28 @@ use serde::Deserialize;
 
 use crate::helper::flush;
 
+// Database sync types
 pub enum Database {
     Main,
     Backup
 }
 
+// Token Response struct containing a string of access token.
 #[derive(Deserialize, Debug)]
 struct TokenResponse {
     access_token: String,
 }
 
+// Credentials struct containing client id, secret key, and refresh token.
 #[derive(Deserialize)]
-struct Creditials {
+struct Credentials {
     client_id: String,
     client_secret: String,
     refresh_token: String,
 }
 
-
-pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
+// Pushes the database to Cloud as main
+pub async fn push() -> Result<(), Box<dyn std::error::Error>> {
     // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
@@ -75,6 +78,7 @@ pub async fn sync() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// Pushes the database to cloud as a backup
 pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
     // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
@@ -122,7 +126,7 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-
+// Fetches the database file from Cloud.
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
@@ -166,6 +170,7 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// Checks if the client has internet access. 
 pub async fn has_internet_access() -> bool {
     let client = Client::new();
     let url = "https://www.google.com";
@@ -179,10 +184,9 @@ pub async fn has_internet_access() -> bool {
     }
 }
 
-
-
+// Requests access token from Dropbox using client id and secret key.
 async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
-    let creditials = match get_creditials() {
+    let credentials = match get_credentials() {
         Ok(c) => c,
         Err(e) => {
             eprint!("Creditial not found: {e}");
@@ -190,9 +194,9 @@ async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
 
-    let client_id = creditials.client_id;
-    let client_secret = creditials.client_secret;
-    let refresh_token = creditials.refresh_token;
+    let client_id = credentials.client_id;
+    let client_secret = credentials.client_secret;
+    let refresh_token = credentials.refresh_token;
     
     // Dropbox token endpoint
     let token_url = "https://api.dropboxapi.com/oauth2/token";
@@ -227,6 +231,7 @@ async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
+// Stores access token in a json file
 fn store_access_token(access_token: String) {
     let json_string = match serde_json::to_string(&access_token) {
         Ok(s) => s,
@@ -242,6 +247,7 @@ fn store_access_token(access_token: String) {
     }
 }
 
+// Retrieves access token from a json file
 fn retrieve_access_token() -> Result<String, Box<dyn std::error::Error>> {
     let json_string = fs::read_to_string("access_token.json");
     let json_string = match json_string {
@@ -255,6 +261,7 @@ fn retrieve_access_token() -> Result<String, Box<dyn std::error::Error>> {
     Ok(parsed)
 }
 
+// Checks if the current access token can still be used.
 async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error>> {
     let access_token = match retrieve_access_token() {
         Ok(s) => s,
@@ -296,8 +303,8 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
     }
 }
 
-
-fn get_creditials() -> Result<Creditials, Box<dyn std::error::Error>> {
+// Retrieves credientials from a file.
+fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
     let json_string = fs::read_to_string("key.json");
     let json_string = match json_string {
         Ok(s) => s,
@@ -305,7 +312,7 @@ fn get_creditials() -> Result<Creditials, Box<dyn std::error::Error>> {
             return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "key not found")));
         },
     };
-    let parsed: Creditials = serde_json::from_str(&json_string).unwrap();
+    let parsed: Credentials = serde_json::from_str(&json_string).unwrap();
 
     Ok(parsed)
 }

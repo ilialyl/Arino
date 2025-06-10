@@ -1,6 +1,6 @@
 use rusqlite::Result;
 
-use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::cloud::sync};
+use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::cloud::push};
 
 use super::{cloud::{fetch, has_internet_access, Database}, get, get_connection, show};
 
@@ -53,7 +53,7 @@ pub async fn ingredient() -> Result<()> {
         Err(e) => eprintln!("Error: {e}"),
     }
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -108,7 +108,7 @@ pub async fn dish_name() -> Result<()> {
 
     println!("\"{old_name}\" has been updated to \"{retrieved_new_name}\"");
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");

@@ -1,6 +1,6 @@
 use rusqlite::Result;
 
-use crate::{cli_operations::user_input::prompt, database::{cloud::sync, get}};
+use crate::{cli_operations::user_input::prompt, database::{cloud::push, get}};
 
 use super::{cloud::{fetch, has_internet_access, Database}, get_connection};
 
@@ -39,7 +39,7 @@ pub async fn ingredient_from_recipe() -> Result<()> {
     let mut stmt = conn.prepare("DELETE FROM recipes WHERE dish_id = ?1 AND ingredient_id = ?2;")?;
     stmt.execute((&dish_id, &ingredient_id))?;
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -83,7 +83,7 @@ pub async fn dish() -> Result<()> {
     let mut delete_dish_stmt = conn.prepare("DELETE FROM dishes WHERE id = ?1")?;
     delete_dish_stmt.execute([dish_id])?;
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -124,7 +124,7 @@ pub async fn ingredient() -> Result<()> {
     let mut stmt = conn.prepare("DELETE FROM ingredients WHERE id = ?1;")?;
     stmt.execute([&ingredient_id])?;
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");

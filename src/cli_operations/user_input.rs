@@ -1,7 +1,7 @@
 use bimap::BiMap;
 use rusqlite::Result;
 use database::show;
-use crate::database::cloud::{backup, fetch, has_internet_access, sync, Database};
+use crate::database::cloud::{backup, fetch, has_internet_access, push, Database};
 use crate::database::{self, delete, insert, modify};
 use crate::helper::flush;
 use std::io::stdin;
@@ -40,7 +40,7 @@ pub async fn match_commands(command_enum: Command, command_bimap: &BiMap<Command
         },
         Command::SyncDatabase => {
             if has_internet_access().await {
-                sync().await.expect("Error syncing database");
+                push().await.expect("Error syncing database");
             } else {
                 eprintln!("Internet access is required to sync database to cloud");
             }

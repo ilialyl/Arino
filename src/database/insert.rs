@@ -1,5 +1,5 @@
 use rusqlite::Result;
-use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::{cloud::{fetch, has_internet_access, sync, Database}, get_connection}};
+use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::{cloud::{fetch, has_internet_access, push, Database}, get_connection}};
 
 // Fetches the database from Cloud, insert an ingredient of choice, and sync the database to Cloud.
 pub async fn ingredient() -> Result<()> {
@@ -50,7 +50,7 @@ pub async fn ingredient() -> Result<()> {
     stmt.execute((category_id, &ingredient_name, &lifespan))?;
     println!("Inserted: {} {} {} successfully", ingredient_name, category_name, lifespan);
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -111,7 +111,7 @@ pub async fn price() -> Result<()> {
     stmt.execute((&ingredient_id, input_price))?;
     println!("Inserted: ${:.2} to {} successfully", input_price_float, ingredient_name);
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -158,7 +158,7 @@ pub async fn dish() -> Result<()> {
         }
     }
 
-    match sync().await {
+    match push().await {
         Ok(_) => {},
         Err(e) => {
             eprintln!("{e}");
@@ -274,7 +274,7 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
     }
     
     if !chained_operation {
-        match sync().await {
+        match push().await {
             Ok(_) => {},
             Err(e) => {
                 eprintln!("{e}");
