@@ -20,5 +20,5 @@ Cargo.lock
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-dropbox_credentials.json
+key.json
 access_token.json
