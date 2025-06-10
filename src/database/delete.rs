@@ -4,6 +4,7 @@ use crate::{cli_operations::user_input::prompt, database::{cloud::sync, get}};
 
 use super::{cloud::{fetch, has_internet_access, Database}, get_connection};
 
+// Fetches the database from Cloud and deletes an ingredient of choice from a recipe.
 pub async fn ingredient_from_recipe() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -49,6 +50,7 @@ pub async fn ingredient_from_recipe() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud and deletes a dish of choice
 pub async fn dish() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -92,6 +94,7 @@ pub async fn dish() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud and deletes an ingredient of choice.
 pub async fn ingredient() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
