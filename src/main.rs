@@ -3,13 +3,13 @@ pub mod cli_operations;
 pub mod helper;
 
 use cli_operations::{commands::get_command_bimap, user_input::{self, to_command_enum, prompt}};
-use database::{cloud::{has_internet_access, Database}, first_start};
+use database::{cloud::{has_internet_access, Database}, database_exists};
 use tokio;
 
 
 #[tokio::main]
 async fn main() {
-    if first_start() {
+    if !database_exists() {
         if has_internet_access().await {
             match database::cloud::fetch(Database::Main).await {
                 Ok(_) => {},
