@@ -1,6 +1,7 @@
 use rusqlite::Result;
 use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::{cloud::{fetch, has_internet_access, sync, Database}, get_connection}};
 
+// Fetches the database from Cloud, insert an ingredient of choice, and sync the database to Cloud.
 pub async fn ingredient() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -60,6 +61,7 @@ pub async fn ingredient() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud, insert price to an ingredient of choice, and sync the database to Cloud.
 pub async fn price() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -120,6 +122,7 @@ pub async fn price() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud, insert a dish of choice, and sync the database to Cloud.
 pub async fn dish() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -166,6 +169,7 @@ pub async fn dish() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud, insert a recipe of choice, and sync the database to Cloud.
 pub async fn recipe(dish_name: Option<String>) -> Result<()> {
     let chained_operation: bool;
 
