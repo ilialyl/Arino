@@ -4,6 +4,7 @@ use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::cloud
 
 use super::{cloud::{fetch, has_internet_access, Database}, get, get_connection, show};
 
+// Fetches the database from Cloud, modify information about an ingredient of choice, and sync the database to Cloud.
 pub async fn ingredient() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
@@ -63,6 +64,7 @@ pub async fn ingredient() -> Result<()> {
     Ok(())
 }
 
+// Fetches the database from Cloud, modify the name of a dish of choice, and sync the database to Cloud.
 pub async fn dish_name() -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
