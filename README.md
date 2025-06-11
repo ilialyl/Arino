@@ -13,6 +13,6 @@ A self-use **CLI** application capable of storing entries of dish recipes and th
 - Push, fetch, and backup to Dropbox **(requiring a private key)**.
 
 ## To-Do List
-- Make the program real CLI, not REPL
+- Make the program Unix-style CLI
 - Store data about what ingredients you currently have
 - Display ingredient usage priorities based on lifespans
