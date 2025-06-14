@@ -8,9 +8,9 @@ use rusqlite::Result;
 #[derive(Parser)]
 #[command(name = "arino")]
 #[command(about = "placeholder", long_about = None)]
-struct Cli {
+pub struct Cli {
     #[command(subcommand)]
-    command: Command,
+    pub command: Command,
 }
 
 // An enum of commands
@@ -141,7 +141,7 @@ struct UpdateDishNameArgs {
 }
 
 impl Command {
-    async fn execute(&self) -> Result<()> {
+    pub async fn execute(&self) -> Result<()> {
         match self {
             Command::NewIngredient(_args) => insert::ingredient().await,
             Command::AddPrice(_args) => insert::price().await,
