@@ -1,61 +1,47 @@
+use crate::cli_operations::commands;
+use crate::{
+    cli_operations::{cancel_prompt, user_input::prompt},
+    database::{
+        cloud::{fetch, has_internet_access, push, Database},
+        get_connection,
+    },
+};
 use rusqlite::Result;
-use crate::{cli_operations::{cancel_prompt, user_input::prompt}, database::{cloud::{fetch, has_internet_access, push, Database}, get_connection}};
 
 // Fetches the database from Cloud, insert an ingredient of choice, and sync the database to Cloud.
-pub async fn ingredient() -> Result<()> {
+pub async fn ingredient(args: &commands::NewIngredientArgs) -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
     }
 
     match fetch(Database::Main).await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     let conn = get_connection();
 
-    let ingredient_name = prompt("Name");
-    if ingredient_name.is_empty() {
-        cancel_prompt();
-        return Ok(());
-    }
+    let name = &args.name;
+    let category_id = args.category as u8;
+    let lifespan = &args.lifespan;
 
-    let (category_name, category_id) = loop {
-        let input_category_name = prompt("Category (vegetable, fruit, dairy, meat, condiment, grain)");
-        if input_category_name.is_empty() {
-            cancel_prompt();
-            return Ok(());
-        }
-
-        let retrieved_category_id: u32 = match conn.query_row("SELECT id FROM categories WHERE name = ?1;", [&input_category_name], |row| row.get(0)) {
-            Ok(id) => id,
-            Err(rusqlite::Error::QueryReturnedNoRows) => {
-                eprintln!("Invalid category");
-                continue;
-            },
-            Err(e) => {
-                eprintln!("Error: {e}");
-                continue;
-            }
-        };
-        break (input_category_name, retrieved_category_id);
-    };
-
-    let lifespan = prompt("Lifespan (in _y_mo_d_h_m_s)");
-
-    let mut stmt = conn.prepare("INSERT INTO ingredients (category_id, name, lifespan) VALUES (?1, ?2, ?3);")?;
-    stmt.execute((category_id, &ingredient_name, &lifespan))?;
-    println!("Inserted: {} {} {} successfully", ingredient_name, category_name, lifespan);
+    let mut stmt =
+        conn.prepare("INSERT INTO ingredients (category_id, name, lifespan) VALUES (?1, ?2, ?3);")?;
+    stmt.execute((category_id, &name, &lifespan))?;
+    println!(
+        "Inserted: {} {} {} successfully",
+        &name, category_id, &lifespan
+    );
 
     match push().await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     Ok(())
@@ -68,11 +54,11 @@ pub async fn price() -> Result<()> {
     }
 
     match fetch(Database::Main).await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     let conn = get_connection();
@@ -84,12 +70,16 @@ pub async fn price() -> Result<()> {
             return Ok(());
         }
 
-        let retrieved_ingredient_id: u32 = match conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&input_ingredient_name], |row| row.get(0)) {
+        let retrieved_ingredient_id: u32 = match conn.query_row(
+            "SELECT id FROM ingredients WHERE name = ?1;",
+            [&input_ingredient_name],
+            |row| row.get(0),
+        ) {
             Ok(id) => id,
             Err(rusqlite::Error::QueryReturnedNoRows) => {
                 eprintln!("Invalid category");
                 continue;
-            },
+            }
             Err(e) => {
                 eprintln!("Error: {e}");
                 continue;
@@ -104,19 +94,22 @@ pub async fn price() -> Result<()> {
         Err(e) => {
             eprint!("{e}");
             return Ok(());
-        },
+        }
     };
 
     let mut stmt = conn.prepare("INSERT INTO prices (ingredient_id, price) VALUES (?1, ?2);")?;
     stmt.execute((&ingredient_id, input_price))?;
-    println!("Inserted: ${:.2} to {} successfully", input_price_float, ingredient_name);
+    println!(
+        "Inserted: ${:.2} to {} successfully",
+        input_price_float, ingredient_name
+    );
 
     match push().await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     Ok(())
@@ -129,11 +122,11 @@ pub async fn dish() -> Result<()> {
     }
 
     match fetch(Database::Main).await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     let conn = get_connection();
@@ -146,24 +139,24 @@ pub async fn dish() -> Result<()> {
     }
 
     let mut stmt = conn.prepare("INSERT INTO dishes (name) VALUES (?1);")?;
-    
+
     stmt.execute([&dish_name])?;
 
     println!("Inserted {dish_name} successfully. Do you want to add recipe now?");
 
     if prompt("[Y/N]") == "y" {
         match recipe(Some(dish_name)).await {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => eprintln!("{e}"),
         }
     }
 
     match push().await {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     }
 
     Ok(())
@@ -178,22 +171,26 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
     let (dish_name, dish_id) = match dish_name {
         Some(dish_name) => {
             chained_operation = true;
-            let retrieved_dish_id: u32 = conn.query_row("SELECT id FROM dishes WHERE name = ?1;", [&dish_name], |row| row.get(0))?;
+            let retrieved_dish_id: u32 = conn.query_row(
+                "SELECT id FROM dishes WHERE name = ?1;",
+                [&dish_name],
+                |row| row.get(0),
+            )?;
 
             (dish_name, retrieved_dish_id)
-        },
+        }
         None => {
             chained_operation = false;
             if !has_internet_access().await {
                 return Ok(());
             }
-        
+
             match fetch(Database::Main).await {
-                Ok(_) => {},
+                Ok(_) => {}
                 Err(e) => {
                     eprintln!("{e}");
                     return Ok(());
-                },
+                }
             }
 
             let (dish_name, dish_id) = loop {
@@ -202,13 +199,17 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
                     cancel_prompt();
                     return Ok(());
                 }
-        
-                let retrieved_dish_id: u32 = match conn.query_row("SELECT id FROM dishes WHERE name = ?1;", [&input_dish_name], |row| row.get(0)) {
+
+                let retrieved_dish_id: u32 = match conn.query_row(
+                    "SELECT id FROM dishes WHERE name = ?1;",
+                    [&input_dish_name],
+                    |row| row.get(0),
+                ) {
                     Ok(id) => id,
                     Err(rusqlite::Error::QueryReturnedNoRows) => {
                         eprintln!("Invalid dish");
                         continue;
-                    },
+                    }
                     Err(e) => {
                         eprintln!("Error: {e}");
                         continue;
@@ -218,7 +219,7 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
             };
 
             (dish_name, dish_id)
-        },
+        }
     };
 
     let mut ingredients_added_vec: Vec<String> = Vec::new();
@@ -229,13 +230,17 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
             if input_ingredient_name.is_empty() {
                 break 'outer;
             }
-    
-            let retrieved_ingredient_id: u32 = match conn.query_row("SELECT id FROM ingredients WHERE name = ?1;", [&input_ingredient_name], |row| row.get(0)) {
+
+            let retrieved_ingredient_id: u32 = match conn.query_row(
+                "SELECT id FROM ingredients WHERE name = ?1;",
+                [&input_ingredient_name],
+                |row| row.get(0),
+            ) {
                 Ok(id) => id,
                 Err(rusqlite::Error::QueryReturnedNoRows) => {
                     eprintln!("Invalid dish");
                     continue;
-                },
+                }
                 Err(e) => {
                     eprintln!("Error: {e}");
                     continue;
@@ -261,7 +266,9 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
             }
         };
 
-        let mut stmt = conn.prepare("INSERT INTO recipes (dish_id, ingredient_id, quantity) VALUES (?1, ?2, ?3);")?;
+        let mut stmt = conn.prepare(
+            "INSERT INTO recipes (dish_id, ingredient_id, quantity) VALUES (?1, ?2, ?3);",
+        )?;
         stmt.execute((&dish_id, &ingredient_id, &quantity))?;
 
         ingredients_added_vec.push(ingredient_name);
@@ -272,14 +279,14 @@ pub async fn recipe(dish_name: Option<String>) -> Result<()> {
 
         println!("Inserted: {ingredient_added_string} into {dish_name}'s recipe");
     }
-    
+
     if !chained_operation {
         match push().await {
-            Ok(_) => {},
+            Ok(_) => {}
             Err(e) => {
                 eprintln!("{e}");
                 return Ok(());
-            },
+            }
         }
     }
 

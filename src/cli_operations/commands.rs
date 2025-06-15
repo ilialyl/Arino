@@ -1,8 +1,8 @@
-use database::show;
 use crate::database::cloud::{backup, fetch, has_internet_access, push, Database};
 use crate::database::{self, delete, insert, modify};
+use database::{show, Category};
 
-use clap::{Parser, Subcommand, Args};
+use clap::{Args, Parser, Subcommand};
 use rusqlite::Result;
 
 #[derive(Parser)]
@@ -36,12 +36,19 @@ pub enum Command {
 }
 
 #[derive(Args)]
-struct NewIngredientArgs {
-    #[arg(long)]
-    name: String,
+pub struct NewIngredientArgs {
+    #[arg(short = 'n', long = "name")]
+    pub name: String,
 
-    #[arg(long)]
-    category: String,
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "Category must be one of (vegetable, fruit, dairy, meat, condiment, grain)."
+    )]
+    pub category: Category,
+
+    #[arg(short = 'l', long = "lifespan")]
+    pub lifespan: String,
 }
 
 #[derive(Args)]
@@ -143,7 +150,7 @@ struct UpdateDishNameArgs {
 impl Command {
     pub async fn execute(&self) -> Result<()> {
         match self {
-            Command::NewIngredient(_args) => insert::ingredient().await,
+            Command::NewIngredient(args) => insert::ingredient(args).await,
             Command::AddPrice(_args) => insert::price().await,
             Command::NewDish(_args) => insert::dish().await,
             Command::AddRecipe(_args) => insert::recipe(None).await,
@@ -156,12 +163,14 @@ impl Command {
             Command::DeleteIngredient(_args) => delete::ingredient().await,
             Command::Pull(_args) => {
                 if has_internet_access().await {
-                    fetch(Database::Main).await.expect("Error fetching database");
+                    fetch(Database::Main)
+                        .await
+                        .expect("Error fetching database");
                 } else {
                     eprintln!("Internet access is required to fetch database from cloud");
                 }
                 Ok(())
-            },
+            }
             Command::Push(_args) => {
                 if has_internet_access().await {
                     push().await.expect("Error syncing database");
@@ -169,7 +178,7 @@ impl Command {
                     eprintln!("Internet access is required to sync database to cloud");
                 }
                 Ok(())
-            },
+            }
             Command::Backup(_args) => {
                 if has_internet_access().await {
                     backup().await.expect("Error backing up database");
@@ -177,13 +186,9 @@ impl Command {
                     eprintln!("Internet access is required to backup database to cloud");
                 }
                 Ok(())
-            },
-            Command::UpdateIngredient(_args) => {
-                modify::ingredient().await
             }
-            Command::UpdateDishName(_args) => {
-                modify::dish_name().await
-            }
+            Command::UpdateIngredient(_args) => modify::ingredient().await,
+            Command::UpdateDishName(_args) => modify::dish_name().await,
         }
     }
 }
@@ -192,4 +197,3 @@ struct CommandDef {
     aliases: Vec<&'static str>,
     args: Vec<&'static str>,
 }
-
