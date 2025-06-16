@@ -2,8 +2,10 @@ use crate::database::cloud::{backup, fetch, has_internet_access, push, Database}
 use crate::database::{self, delete, insert, modify};
 use database::{show, Category};
 
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, shells::Bash};
 use rusqlite::Result;
+use std::io;
 
 #[derive(Parser)]
 #[command(name = "arino")]
@@ -33,6 +35,7 @@ pub enum Command {
     Backup(BackupArgs),
     UpdateIngredient(UpdateIngredientArgs),
     UpdateDishName(UpdateDishNameArgs),
+    Completion,
 }
 
 #[derive(Args)]
@@ -52,30 +55,42 @@ pub struct NewIngredientArgs {
 }
 
 #[derive(Args)]
-struct AddPriceArgs {
-    #[arg(long)]
-    ingredient: String,
+pub struct AddPriceArgs {
+    #[arg(short = 'i', long = "ingredient")]
+    pub ingredient: String,
 
-    #[arg(long)]
-    price: f32,
+    #[arg(
+        short = 'p',
+        long = "price",
+        help = "Price can be in floating point numbers, without currency prefixes."
+    )]
+    pub price: f32,
 }
 
 #[derive(Args)]
-struct NewDishArgs {
-    #[arg(long)]
-    name: String,
+pub struct NewDishArgs {
+    #[arg(short = 'n', long = "name")]
+    pub name: String,
 }
 
 #[derive(Args)]
-struct AddRecipeArgs {
-    #[arg(long)]
-    dish: String,
+pub struct AddRecipeArgs {
+    #[arg(short = 'd', long = "dish", help = "Name of an existing dish.")]
+    pub dish: String,
 
-    #[arg(long)]
-    ingredient: String,
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient."
+    )]
+    pub ingredient: Vec<String>,
 
-    #[arg(long)]
-    amount: f32,
+    #[arg(
+        short = 'q',
+        long = "quantity",
+        help = "Quantity of the ingredient in numbers in grams (g)."
+    )]
+    pub quantity: Vec<String>,
 }
 
 #[derive(Args)]
@@ -151,9 +166,9 @@ impl Command {
     pub async fn execute(&self) -> Result<()> {
         match self {
             Command::NewIngredient(args) => insert::ingredient(args).await,
-            Command::AddPrice(_args) => insert::price().await,
-            Command::NewDish(_args) => insert::dish().await,
-            Command::AddRecipe(_args) => insert::recipe(None).await,
+            Command::AddPrice(args) => insert::price(args).await,
+            Command::NewDish(args) => insert::dish(args).await,
+            Command::AddRecipe(args) => insert::recipe(args).await,
             Command::ListAllDishes(_args) => show::all_dish_names(),
             Command::ListAllIngredients(_args) => show::all_ingredients(),
             Command::IHave(_args) => show::dish_by_ingredients::get_dishes(),
@@ -189,6 +204,10 @@ impl Command {
             }
             Command::UpdateIngredient(_args) => modify::ingredient().await,
             Command::UpdateDishName(_args) => modify::dish_name().await,
+            Command::Completion => {
+                print_completions();
+                Ok(())
+            }
         }
     }
 }
@@ -196,4 +215,9 @@ impl Command {
 struct CommandDef {
     aliases: Vec<&'static str>,
     args: Vec<&'static str>,
+}
+
+fn print_completions() {
+    let mut cmd = Cli::command();
+    generate(Bash, &mut cmd, "target/release/arino", &mut io::stdout());
 }
