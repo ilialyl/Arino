@@ -10,7 +10,7 @@ use rusqlite::Connection;
 use std::fs::metadata;
 use std::path::Path;
 
-#[repr(u8)]
+#[repr(u32)]
 #[derive(ValueEnum, Clone, Copy)]
 pub enum Category {
     All = 0,
