@@ -13,6 +13,7 @@ use std::path::Path;
 #[repr(u8)]
 #[derive(ValueEnum, Clone, Copy)]
 pub enum Category {
+    All = 0,
     Vegetable = 1,
     Fruit = 2,
     Dairy = 3,

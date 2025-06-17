@@ -94,10 +94,17 @@ pub struct AddRecipeArgs {
 }
 
 #[derive(Args)]
-struct ListAllDishesArgs {}
+pub struct ListAllDishesArgs {}
 
 #[derive(Args)]
-struct ListAllIngredientsArgs {}
+pub struct ListAllIngredientsArgs {
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "One of vegetable, fruit, dairy, meat, condiment, grain (default is all)."
+    )]
+    pub category: Option<Category>,
+}
 
 #[derive(Args)]
 struct IHaveArgs {
@@ -169,8 +176,8 @@ impl Command {
             Command::AddPrice(args) => insert::price(args).await,
             Command::NewDish(args) => insert::dish(args).await,
             Command::AddRecipe(args) => insert::recipe(args).await,
-            Command::ListAllDishes(_args) => show::all_dish_names(),
-            Command::ListAllIngredients(_args) => show::all_ingredients(),
+            Command::ListAllDishes(args) => show::all_dish_names(args),
+            Command::ListAllIngredients(args) => show::all_ingredients(args),
             Command::IHave(_args) => show::dish_by_ingredients::get_dishes(),
             Command::RecipeOf(_args) => show::recipe_by_dish_name(),
             Command::DeleteIngredientFromRecipe(_args) => delete::ingredient_from_recipe().await,
