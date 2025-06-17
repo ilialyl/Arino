@@ -117,9 +117,13 @@ pub struct IHaveArgs {
 }
 
 #[derive(Args)]
-struct RecipeOfArgs {
-    #[arg(long)]
-    dish: String,
+pub struct RecipeOfArgs {
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
 }
 
 #[derive(Args)]
@@ -183,7 +187,7 @@ impl Command {
             Command::ListAllDishes(args) => show::all_dish_names(args),
             Command::ListAllIngredients(args) => show::all_ingredients(args),
             Command::IHave(args) => show::dish_by_ingredients::get_dishes(args),
-            Command::RecipeOf(_args) => show::recipe_by_dish_name(),
+            Command::RecipeOf(args) => show::recipe_by_dish_name(args),
             Command::DeleteIngredientFromRecipe(_args) => delete::ingredient_from_recipe().await,
             Command::DeleteDish(_args) => delete::dish().await,
             Command::DeleteIngredient(_args) => delete::ingredient().await,
