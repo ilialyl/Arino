@@ -127,7 +127,7 @@ pub struct RecipeOfArgs {
 }
 
 #[derive(Args)]
-struct DeleteIngredientFromRecipeArgs {
+pub struct DeleteIngredientFromRecipeArgs {
     #[arg(long)]
     dish: String,
 
@@ -136,45 +136,45 @@ struct DeleteIngredientFromRecipeArgs {
 }
 
 #[derive(Args)]
-struct DeleteDisArgsh {
+pub struct DeleteDisArgsh {
     #[arg(long)]
     dish: String,
 }
 
 #[derive(Args)]
-struct DeleteIngredientArgs {
+pub struct DeleteIngredientArgs {
     #[arg(long)]
     ingredient: String,
 }
 
 #[derive(Args)]
-struct PullArgs {}
+pub struct PullArgs {}
 
 #[derive(Args)]
-struct PushArgs {}
+pub struct PushArgs {}
 
 #[derive(Args)]
-struct BackupArgs {}
+pub struct BackupArgs {}
 
 #[derive(Args)]
-struct UpdateIngredientArgs {
+pub struct UpdateIngredientArgs {
     #[arg(long)]
-    ingredient: String,
+    pub ingredient: String,
 
     #[arg(long)]
-    new_name: Option<String>,
+    pub new_name: Option<String>,
 
     #[arg(long)]
-    new_category: Option<String>,
+    pub new_category: Option<String>,
 }
 
 #[derive(Args)]
-struct UpdateDishNameArgs {
+pub struct UpdateDishNameArgs {
     #[arg(long)]
-    dish: String,
+    pub dish: String,
 
     #[arg(long)]
-    new_name: String,
+    pub new_name: String,
 }
 
 impl Command {
@@ -225,11 +225,6 @@ impl Command {
             }
         }
     }
-}
-
-struct CommandDef {
-    aliases: Vec<&'static str>,
-    args: Vec<&'static str>,
 }
 
 fn print_completions() {
