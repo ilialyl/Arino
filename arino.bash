@@ -145,7 +145,7 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__add_price)
-            opts="-h --ingredient --price --help"
+            opts="-i -p -h --ingredient --price --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -155,7 +155,15 @@ _target/release/arino() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
+                -i)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 --price)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -p)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -167,7 +175,7 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__add_recipe)
-            opts="-h --dish --ingredient --amount --help"
+            opts="-d -i -q -h --dish --ingredient --quantity --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -177,11 +185,23 @@ _target/release/arino() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
+                -d)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 --ingredient)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --amount)
+                -i)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --quantity)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -q)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -545,13 +565,17 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__i_have)
-            opts="-h --ingredients --help"
+            opts="-i -h --ingredients --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
                 --ingredients)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -i)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -577,12 +601,20 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__list_all_ingredients)
-            opts="-h --help"
+            opts="-c -h --category --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
+                --category)
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
+                    return 0
+                    ;;
+                -c)
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
+                    return 0
+                    ;;
                 *)
                     COMPREPLY=()
                     ;;
@@ -591,13 +623,17 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__new_dish)
-            opts="-h --name --help"
+            opts="-n -h --name --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
                 --name)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -n)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -624,11 +660,11 @@ _target/release/arino() {
                     return 0
                     ;;
                 --category)
-                    COMPREPLY=($(compgen -W "vegetable fruit dairy meat condiment grain" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
                     return 0
                     ;;
                 -c)
-                    COMPREPLY=($(compgen -W "vegetable fruit dairy meat condiment grain" -- "${cur}"))
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
                     return 0
                     ;;
                 --lifespan)
@@ -675,13 +711,17 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__recipe_of)
-            opts="-h --dish --help"
+            opts="-d -h --dish --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
                 --dish)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -d)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
