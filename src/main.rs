@@ -24,5 +24,8 @@ async fn main() {
     }
 
     let cli = Cli::parse();
-    cli.command.execute().await.unwrap();
+    match cli.command.execute().await {
+        Ok(_) => {}
+        Err(e) => eprintln!("{e}"),
+    }
 }
