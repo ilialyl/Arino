@@ -107,9 +107,13 @@ pub struct ListAllIngredientsArgs {
 }
 
 #[derive(Args)]
-struct IHaveArgs {
-    #[arg(long)]
-    ingredients: Vec<String>,
+pub struct IHaveArgs {
+    #[arg(
+        short = 'i',
+        long = "ingredients",
+        help = "List the ingredients which exist in the database."
+    )]
+    pub ingredients: Vec<String>,
 }
 
 #[derive(Args)]
@@ -178,7 +182,7 @@ impl Command {
             Command::AddRecipe(args) => insert::recipe(args).await,
             Command::ListAllDishes(args) => show::all_dish_names(args),
             Command::ListAllIngredients(args) => show::all_ingredients(args),
-            Command::IHave(_args) => show::dish_by_ingredients::get_dishes(),
+            Command::IHave(args) => show::dish_by_ingredients::get_dishes(args),
             Command::RecipeOf(_args) => show::recipe_by_dish_name(),
             Command::DeleteIngredientFromRecipe(_args) => delete::ingredient_from_recipe().await,
             Command::DeleteDish(_args) => delete::dish().await,
