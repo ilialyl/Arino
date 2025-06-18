@@ -156,6 +156,11 @@ pub struct DeleteDishArgs {
 #[derive(Args)]
 pub struct DeleteIngredientArgs {
     #[arg(long)]
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the database."
+    )]
     pub ingredient: String,
 }
 
@@ -202,7 +207,7 @@ impl Command {
             Command::RecipeOf(args) => show::recipe_by_dish_name(args),
             Command::DeleteIngredientFromRecipe(args) => delete::ingredient_from_recipe(args).await,
             Command::DeleteDish(args) => delete::dish(args).await,
-            Command::DeleteIngredient(_args) => delete::ingredient().await,
+            Command::DeleteIngredient(args) => delete::ingredient(args).await,
             Command::Pull(_args) => {
                 if has_internet_access().await {
                     fetch(Database::Main)

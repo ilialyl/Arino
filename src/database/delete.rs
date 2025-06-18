@@ -106,7 +106,7 @@ pub async fn dish(args: &commands::DeleteDishArgs) -> Result<()> {
 }
 
 // Fetches the database from Cloud and deletes an ingredient of choice.
-pub async fn ingredient() -> Result<()> {
+pub async fn ingredient(args: &commands::DeleteIngredientArgs) -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
     }
@@ -120,14 +120,15 @@ pub async fn ingredient() -> Result<()> {
     }
 
     let conn = get_connection();
+    let ingredient = &args.ingredient;
 
-    let ingredient_id = match get::ingredient_id(&conn) {
+    let ingredient_id = match get::ingredient_id(&ingredient, &conn) {
         Some(id) => id,
         None => return Ok(()),
     };
 
-    println!("Are you sure you want to delete this ingredient from the database?");
-    if prompt("[Y/N]") != "y" {
+    println!("Are you sure you want to delete {ingredient} from the database?");
+    if prompt("[y/N]") != "y" {
         println!("Deletion aborted");
         return Ok(());
     }
