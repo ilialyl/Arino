@@ -1,9 +1,6 @@
 use rusqlite::Result;
 
-use crate::{
-    cli_operations::{cancel_prompt, commands, user_input::prompt},
-    database::cloud::push,
-};
+use crate::{cli_operations::commands, database::cloud::push};
 
 use super::{
     cloud::{fetch, has_internet_access, Database},
