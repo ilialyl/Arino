@@ -1,6 +1,7 @@
-use crate::database::cloud::{backup, fetch, has_internet_access, push, Database};
-use crate::database::{self, delete, insert, modify};
-use database::{show, Category};
+use crate::database::{
+    cloud::{backup, fetch, has_internet_access, push, Database},
+    delete, insert, modify, show, Category,
+};
 
 use clap::{Args, CommandFactory, Parser, Subcommand};
 use clap_complete::{generate, shells::Bash};
