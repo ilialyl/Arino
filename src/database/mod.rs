@@ -35,6 +35,18 @@ impl Category {
             _ => None,
         }
     }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Category::All => "all",
+            Category::Vegetable => "vegetable",
+            Category::Fruit => "fruit",
+            Category::Dairy => "dairy",
+            Category::Meat => "meat",
+            Category::Condiment => "condiment",
+            Category::Grain => "grain",
+        }
+    }
 }
 
 // Opens and returns a connection to the database
