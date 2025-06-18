@@ -161,7 +161,7 @@ pub fn all_ingredients(args: &commands::ListAllIngredientsArgs) -> Result<()> {
 }
 
 // Prints information about an ingredient of choice.
-pub fn an_ingredient_info(ingredient_id: u32) -> Result<()> {
+pub fn ingredient_info(ingredient_id: u32) -> Result<()> {
     let conn = get_connection();
 
     let mut stmt =
@@ -169,6 +169,11 @@ pub fn an_ingredient_info(ingredient_id: u32) -> Result<()> {
     stmt.query_row([ingredient_id], |row| {
         let id: u32 = row.get(0)?;
         let category_id: u32 = row.get(1)?;
+        let category = match Category::from_u32(category_id) {
+            Some(cat) => cat.as_str(),
+            None => "none",
+        };
+
         let name: String = row.get(2)?;
         let lifespan: String = row.get(3)?;
         let price = match get::price(ingredient_id, &conn) {
@@ -180,7 +185,7 @@ pub fn an_ingredient_info(ingredient_id: u32) -> Result<()> {
 
         table.add_row(Row::new(vec![
             Cell::new("ID"),
-            Cell::new("Category ID"),
+            Cell::new("Category"),
             Cell::new("Name"),
             Cell::new("Lifespan"),
             Cell::new("Mean Price"),
@@ -188,7 +193,7 @@ pub fn an_ingredient_info(ingredient_id: u32) -> Result<()> {
 
         table.add_row(Row::new(vec![
             Cell::new(&id.to_string()),
-            Cell::new(&category_id.to_string()),
+            Cell::new(&category),
             Cell::new(&name),
             Cell::new(&lifespan),
             Cell::new(&format!("${price:.2}")),

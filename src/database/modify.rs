@@ -53,7 +53,7 @@ pub async fn ingredient(args: &commands::UpdateIngredientArgs) -> Result<()> {
     }
 
     println!("Ingredient Updated");
-    match show::an_ingredient_info(id) {
+    match show::ingredient_info(id) {
         Ok(_) => {}
         Err(e) => eprintln!("Error: {e}"),
     }
