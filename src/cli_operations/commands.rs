@@ -1,51 +1,275 @@
-use bimap::BiMap;
+use crate::database::{
+    cloud::{backup, fetch, has_internet_access, push, Database},
+    delete, insert, modify, show, Category,
+};
 
-// An enum of commands
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Command {
-    NewIngredient,
-    AddPrice,
-    NewDish,
-    AddRecipe,
-    ListAllDishes,
-    ListAllIngredients,
-    IHave,
-    RecipeOf,
-    DeleteIngredientFromRecipe,
-    DeleteDish,
-    DeleteIngredient,
-    FetchDatabase,
-    SyncDatabase,
-    BackupDatabase,
-    Quit,
-    Help,
-    Unknown,
-    UpdateIngredient,
-    UpdateDishName,
+use clap::{Args, CommandFactory, Parser, Subcommand};
+use clap_complete::{generate, shells::Bash};
+use rusqlite::Result;
+use std::io;
+
+#[derive(Parser)]
+#[command(name = "arino")]
+#[command(about = "placeholder", long_about = None)]
+pub struct Cli {
+    #[command(subcommand)]
+    pub command: Command,
 }
 
-// Creates and returns a bidirectional map of commands
-pub fn get_command_bimap() -> BiMap<Command, String> {
-    let mut bimap = BiMap::new();
-    bimap.insert(Command::NewIngredient, "new ingredient".to_string());
-    bimap.insert(Command::AddPrice, "add price".to_string());
-    bimap.insert(Command::NewDish, "new dish".to_string());
-    bimap.insert(Command::AddRecipe, "add recipe".to_string());
-    bimap.insert(Command::ListAllDishes, "list all dishes".to_string());
-    bimap.insert(Command::ListAllIngredients, "list all ingredients".to_string());
-    bimap.insert(Command::IHave, "i have".to_string());
-    bimap.insert(Command::RecipeOf, "recipe of".to_string());
-    bimap.insert(Command::DeleteIngredientFromRecipe, "delete ingredient from recipe".to_string());
-    bimap.insert(Command::DeleteDish, "delete dish".to_string());
-    bimap.insert(Command::DeleteIngredient, "delete ingredient".to_string());
-    bimap.insert(Command::FetchDatabase, "fetch database".to_string());
-    bimap.insert(Command::SyncDatabase, "sync database".to_string());
-    bimap.insert(Command::BackupDatabase, "backup database".to_string());
-    bimap.insert(Command::Help, "help".to_string());
-    bimap.insert(Command::Quit, "quit".to_string());
-    bimap.insert(Command::Unknown, "unknown".to_string());
-    bimap.insert(Command::UpdateIngredient, "update ingredient".to_string());
-    bimap.insert(Command::UpdateDishName, "update dish".to_string());
+// An enum of commands
+#[derive(Subcommand)]
+#[command(rename_all = "snake_case")]
+pub enum Command {
+    NewIngredient(NewIngredientArgs),
+    AddPrice(AddPriceArgs),
+    NewDish(NewDishArgs),
+    AddRecipe(AddRecipeArgs),
+    ListAllDishes(ListAllDishesArgs),
+    ListAllIngredients(ListAllIngredientsArgs),
+    IHave(IHaveArgs),
+    RecipeOf(RecipeOfArgs),
+    DeleteIngredientFromRecipe(DeleteIngredientFromRecipeArgs),
+    DeleteDish(DeleteDishArgs),
+    DeleteIngredient(DeleteIngredientArgs),
+    Pull(PullArgs),
+    Push(PushArgs),
+    Backup(BackupArgs),
+    UpdateIngredient(UpdateIngredientArgs),
+    UpdateDishName(UpdateDishNameArgs),
+    Completion,
+}
 
-    bimap
+#[derive(Args)]
+pub struct NewIngredientArgs {
+    #[arg(short = 'n', long = "name")]
+    pub name: String,
+
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "Category must be one of (vegetable, fruit, dairy, meat, condiment, grain)."
+    )]
+    pub category: Category,
+
+    #[arg(short = 'l', long = "lifespan")]
+    pub lifespan: String,
+}
+
+#[derive(Args)]
+pub struct AddPriceArgs {
+    #[arg(short = 'i', long = "ingredient")]
+    pub ingredient: String,
+
+    #[arg(
+        short = 'p',
+        long = "price",
+        help = "Price can be in floating point numbers, without currency prefixes."
+    )]
+    pub price: f32,
+}
+
+#[derive(Args)]
+pub struct NewDishArgs {
+    #[arg(short = 'n', long = "name")]
+    pub name: String,
+}
+
+#[derive(Args)]
+pub struct AddRecipeArgs {
+    #[arg(short = 'd', long = "dish", help = "Name of an existing dish.")]
+    pub dish: String,
+
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient."
+    )]
+    pub ingredient: Vec<String>,
+
+    #[arg(
+        short = 'q',
+        long = "quantity",
+        help = "Quantity of the ingredient in numbers in grams (g)."
+    )]
+    pub quantity: Vec<String>,
+}
+
+#[derive(Args)]
+pub struct ListAllDishesArgs {}
+
+#[derive(Args)]
+pub struct ListAllIngredientsArgs {
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "One of vegetable, fruit, dairy, meat, condiment, grain (default is all)."
+    )]
+    pub category: Option<Category>,
+}
+
+#[derive(Args)]
+pub struct IHaveArgs {
+    #[arg(
+        short = 'i',
+        long = "ingredients",
+        help = "List the ingredients which exist in the database."
+    )]
+    pub ingredients: Vec<String>,
+}
+
+#[derive(Args)]
+pub struct RecipeOfArgs {
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
+}
+
+#[derive(Args)]
+pub struct DeleteIngredientFromRecipeArgs {
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
+
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the recipe of selected dish."
+    )]
+    pub ingredient: String,
+}
+
+#[derive(Args)]
+pub struct DeleteDishArgs {
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
+}
+
+#[derive(Args)]
+pub struct DeleteIngredientArgs {
+    #[arg(long)]
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the database."
+    )]
+    pub ingredient: String,
+}
+
+#[derive(Args)]
+pub struct PullArgs {}
+
+#[derive(Args)]
+pub struct PushArgs {}
+
+#[derive(Args)]
+pub struct BackupArgs {}
+
+#[derive(Args)]
+pub struct UpdateIngredientArgs {
+    #[arg(long)]
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the database."
+    )]
+    pub ingredient: String,
+
+    #[arg(
+        short = 'n',
+        long = "name",
+        help = "New name of the ingredient (optional)."
+    )]
+    pub new_name: Option<String>,
+
+    #[arg(
+        short = 'l',
+        long = "lifespan",
+        help = "New lifespan of the ingredient (optional)."
+    )]
+    pub new_lifespan: Option<String>,
+
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "New category of the ingredient (optional)."
+    )]
+    pub new_category: Option<Category>,
+}
+
+#[derive(Args)]
+pub struct UpdateDishNameArgs {
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
+
+    #[arg(short = 'n', long = "new_name", help = "New name of the dish.")]
+    pub new_name: String,
+}
+
+impl Command {
+    pub async fn execute(&self) -> Result<()> {
+        match self {
+            Command::NewIngredient(args) => insert::ingredient(args).await,
+            Command::AddPrice(args) => insert::price(args).await,
+            Command::NewDish(args) => insert::dish(args).await,
+            Command::AddRecipe(args) => insert::recipe(args).await,
+            Command::ListAllDishes(args) => show::all_dish_names(args),
+            Command::ListAllIngredients(args) => show::all_ingredients(args),
+            Command::IHave(args) => show::dish_by_ingredients::get_dishes(args),
+            Command::RecipeOf(args) => show::recipe_by_dish_name(args),
+            Command::DeleteIngredientFromRecipe(args) => delete::ingredient_from_recipe(args).await,
+            Command::DeleteDish(args) => delete::dish(args).await,
+            Command::DeleteIngredient(args) => delete::ingredient(args).await,
+            Command::Pull(_args) => {
+                if has_internet_access().await {
+                    fetch(Database::Main)
+                        .await
+                        .expect("Error fetching database");
+                } else {
+                    eprintln!("Internet access is required to fetch database from cloud");
+                }
+                Ok(())
+            }
+            Command::Push(_args) => {
+                if has_internet_access().await {
+                    push().await.expect("Error syncing database");
+                } else {
+                    eprintln!("Internet access is required to sync database to cloud");
+                }
+                Ok(())
+            }
+            Command::Backup(_args) => {
+                if has_internet_access().await {
+                    backup().await.expect("Error backing up database");
+                } else {
+                    eprintln!("Internet access is required to backup database to cloud");
+                }
+                Ok(())
+            }
+            Command::UpdateIngredient(args) => modify::ingredient(args).await,
+            Command::UpdateDishName(args) => modify::dish_name(args).await,
+            Command::Completion => {
+                print_completions();
+                Ok(())
+            }
+        }
+    }
+}
+
+fn print_completions() {
+    let mut cmd = Cli::command();
+    generate(Bash, &mut cmd, "target/release/arino", &mut io::stdout());
 }
