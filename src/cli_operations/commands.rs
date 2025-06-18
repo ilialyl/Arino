@@ -28,7 +28,7 @@ pub enum Command {
     IHave(IHaveArgs),
     RecipeOf(RecipeOfArgs),
     DeleteIngredientFromRecipe(DeleteIngredientFromRecipeArgs),
-    DeleteDish(DeleteDisArgsh),
+    DeleteDish(DeleteDishArgs),
     DeleteIngredient(DeleteIngredientArgs),
     Pull(PullArgs),
     Push(PushArgs),
@@ -128,15 +128,23 @@ pub struct RecipeOfArgs {
 
 #[derive(Args)]
 pub struct DeleteIngredientFromRecipeArgs {
-    #[arg(long)]
-    dish: String,
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
+    pub dish: String,
 
-    #[arg(long)]
-    ingredient: String,
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the recipe of selected dish."
+    )]
+    pub ingredient: String,
 }
 
 #[derive(Args)]
-pub struct DeleteDisArgsh {
+pub struct DeleteDishArgs {
     #[arg(long)]
     dish: String,
 }
@@ -188,7 +196,7 @@ impl Command {
             Command::ListAllIngredients(args) => show::all_ingredients(args),
             Command::IHave(args) => show::dish_by_ingredients::get_dishes(args),
             Command::RecipeOf(args) => show::recipe_by_dish_name(args),
-            Command::DeleteIngredientFromRecipe(_args) => delete::ingredient_from_recipe().await,
+            Command::DeleteIngredientFromRecipe(args) => delete::ingredient_from_recipe(args).await,
             Command::DeleteDish(_args) => delete::dish().await,
             Command::DeleteIngredient(_args) => delete::ingredient().await,
             Command::Pull(_args) => {
