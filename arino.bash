@@ -241,13 +241,17 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__delete_dish)
-            opts="-h --dish --help"
+            opts="-d -h --dish --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
                 --dish)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -d)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -259,13 +263,17 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__delete_ingredient)
-            opts="-h --ingredient --help"
+            opts="-i -h --ingredient --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
             fi
             case "${prev}" in
                 --ingredient)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -i)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -277,7 +285,7 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__delete_ingredient_from_recipe)
-            opts="-h --dish --ingredient --help"
+            opts="-d -i -h --dish --ingredient --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -287,7 +295,15 @@ _target/release/arino() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
+                -d)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
                 --ingredient)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -i)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -733,7 +749,7 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__update_dish_name)
-            opts="-h --dish --new-name --help"
+            opts="-d -n -h --dish --new_name --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -743,7 +759,15 @@ _target/release/arino() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --new-name)
+                -d)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --new_name)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -n)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
@@ -755,7 +779,7 @@ _target/release/arino() {
             return 0
             ;;
         target/release/arino__update_ingredient)
-            opts="-h --ingredient --new-name --new-category --help"
+            opts="-i -n -l -c -h --ingredient --name --lifespan --category --help"
             if [[ ${cur} == -* || ${COMP_CWORD} -eq 2 ]] ; then
                 COMPREPLY=( $(compgen -W "${opts}" -- "${cur}") )
                 return 0
@@ -765,12 +789,32 @@ _target/release/arino() {
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --new-name)
+                -i)
                     COMPREPLY=($(compgen -f "${cur}"))
                     return 0
                     ;;
-                --new-category)
+                --name)
                     COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -n)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --lifespan)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                -l)
+                    COMPREPLY=($(compgen -f "${cur}"))
+                    return 0
+                    ;;
+                --category)
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
+                    return 0
+                    ;;
+                -c)
+                    COMPREPLY=($(compgen -W "all vegetable fruit dairy meat condiment grain" -- "${cur}"))
                     return 0
                     ;;
                 *)
