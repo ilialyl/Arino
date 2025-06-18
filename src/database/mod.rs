@@ -22,6 +22,21 @@ pub enum Category {
     Grain = 6,
 }
 
+impl Category {
+    pub fn from_u32(value: u32) -> Option<Self> {
+        match value {
+            0 => Some(Category::All),
+            1 => Some(Category::Vegetable),
+            2 => Some(Category::Fruit),
+            3 => Some(Category::Dairy),
+            4 => Some(Category::Meat),
+            5 => Some(Category::Condiment),
+            6 => Some(Category::Grain),
+            _ => None,
+        }
+    }
+}
+
 // Opens and returns a connection to the database
 pub fn get_connection() -> Connection {
     let path: String = "database.db".to_string();
