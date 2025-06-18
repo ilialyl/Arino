@@ -176,13 +176,33 @@ pub struct BackupArgs {}
 #[derive(Args)]
 pub struct UpdateIngredientArgs {
     #[arg(long)]
+    #[arg(
+        short = 'i',
+        long = "ingredient",
+        help = "Name of an existing ingredient in the database."
+    )]
     pub ingredient: String,
 
-    #[arg(long)]
+    #[arg(
+        short = 'n',
+        long = "name",
+        help = "New name of the ingredient (optional)."
+    )]
     pub new_name: Option<String>,
 
-    #[arg(long)]
-    pub new_category: Option<String>,
+    #[arg(
+        short = 'l',
+        long = "lifespan",
+        help = "New lifespan of the ingredient (optional)."
+    )]
+    pub new_lifespan: Option<String>,
+
+    #[arg(
+        short = 'c',
+        long = "category",
+        help = "New category of the ingredient (optional)."
+    )]
+    pub new_category: Option<Category>,
 }
 
 #[derive(Args)]
@@ -234,7 +254,7 @@ impl Command {
                 }
                 Ok(())
             }
-            Command::UpdateIngredient(_args) => modify::ingredient().await,
+            Command::UpdateIngredient(args) => modify::ingredient(args).await,
             Command::UpdateDishName(_args) => modify::dish_name().await,
             Command::Completion => {
                 print_completions();
