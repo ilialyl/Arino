@@ -207,10 +207,14 @@ pub struct UpdateIngredientArgs {
 
 #[derive(Args)]
 pub struct UpdateDishNameArgs {
-    #[arg(long)]
+    #[arg(
+        short = 'd',
+        long = "dish",
+        help = "Name of an existing dish in the database."
+    )]
     pub dish: String,
 
-    #[arg(long)]
+    #[arg(short = 'n', long = "new_name", help = "New name of the dish.")]
     pub new_name: String,
 }
 
@@ -255,7 +259,7 @@ impl Command {
                 Ok(())
             }
             Command::UpdateIngredient(args) => modify::ingredient(args).await,
-            Command::UpdateDishName(_args) => modify::dish_name().await,
+            Command::UpdateDishName(args) => modify::dish_name(args).await,
             Command::Completion => {
                 print_completions();
                 Ok(())

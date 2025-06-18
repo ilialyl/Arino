@@ -73,7 +73,7 @@ pub async fn ingredient(args: &commands::UpdateIngredientArgs) -> Result<()> {
 }
 
 // Fetches the database from Cloud, modify the name of a dish of choice, and sync the database to Cloud.
-pub async fn dish_name() -> Result<()> {
+pub async fn dish_name(args: &commands::UpdateDishNameArgs) -> Result<()> {
     if !has_internet_access().await {
         return Ok(());
     }
@@ -88,31 +88,28 @@ pub async fn dish_name() -> Result<()> {
 
     let conn = get_connection();
 
-    let dish_id = match get::dish_id(&conn) {
+    let dish = &args.dish;
+    let new_name = &args.new_name;
+
+    let id = match get::dish_id(&dish, &conn) {
         Some(id) => id,
         None => return Ok(()),
     };
 
-    let old_name = match get::dish_name(dish_id, &conn) {
+    let old_name = match get::dish_name(id, &conn) {
         Some(name) => name,
         None => return Ok(()),
     };
-
-    let new_name = prompt("New dish name");
-    if new_name.is_empty() {
-        cancel_prompt();
-        return Ok(());
-    }
 
     let mut update_name_stmt = conn.prepare("UPDATE dishes SET name = ?1 WHERE id = ?2")?;
-    update_name_stmt.execute((&new_name, dish_id))?;
+    update_name_stmt.execute((&new_name, id))?;
 
-    let retrieved_new_name = match get::dish_name(dish_id, &conn) {
+    let retrieved_new_name = match get::dish_name(id, &conn) {
         Some(name) => name,
         None => return Ok(()),
     };
 
-    println!("\"{old_name}\" has been updated to \"{retrieved_new_name}\"");
+    println!("\"{old_name}\" has been renamed to \"{retrieved_new_name}\"");
 
     match push().await {
         Ok(_) => {}
