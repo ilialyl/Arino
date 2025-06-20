@@ -24,7 +24,7 @@ pub fn dish_id(dish: &str, conn: &Connection) -> Option<u32> {
 
 // Gets dish name from dish ID
 pub fn dish_name(dish_id: u32, conn: &Connection) -> Option<String> {
-    let retrieved_dish_name: Option<String> = match conn.query_row(
+    let name: Option<String> = match conn.query_row(
         "SELECT name FROM dishes WHERE id = ?1;",
         [&dish_id],
         |row| row.get(0),
@@ -40,7 +40,7 @@ pub fn dish_name(dish_id: u32, conn: &Connection) -> Option<String> {
         }
     };
 
-    retrieved_dish_name
+    name
 }
 
 // Gets ingredient id from ingredient name

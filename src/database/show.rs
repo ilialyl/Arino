@@ -11,15 +11,15 @@ use super::{get, get_connection};
 // Prints all dishes by their names
 pub fn all_dish_names(_args: &commands::ListAllDishesArgs) -> Result<()> {
     let conn = get_connection();
-    let mut select_dish_names_stmt = conn.prepare("Select id, name FROM dishes")?;
-    let names_iter = select_dish_names_stmt.query_map([], |row| {
+    let mut dish_names_stmt = conn.prepare("Select id, name FROM dishes")?;
+    let name_iter = dish_names_stmt.query_map([], |row| {
         Ok((row.get::<_, u32>(0)?, row.get::<_, String>(1)?))
     })?;
 
     let mut table: Table = Table::new();
     table.add_row(Row::new(vec![Cell::new("ID"), Cell::new("Name")]));
 
-    for dish in names_iter {
+    for dish in name_iter {
         let (id, name) = dish?;
 
         table.add_row(Row::new(vec![Cell::new(&id.to_string()), Cell::new(&name)]));
@@ -45,15 +45,15 @@ pub fn recipe_by_dish_name(args: &commands::RecipeOfArgs) -> Result<()> {
         }
     };
 
-    let mut select_recipe_ingredient_ids_stmt =
+    let mut ingredient_id_stmt =
         conn.prepare("SELECT ingredient_id FROM recipes WHERE dish_id = ?1;")?;
-    let ingredient_ids_iter =
-        select_recipe_ingredient_ids_stmt.query_map([dish_id], |row| Ok(row.get::<_, u32>(0)?))?;
+    let ingredient_id_iter =
+        ingredient_id_stmt.query_map([dish_id], |row| Ok(row.get::<_, u32>(0)?))?;
 
     let mut ingredient_vec: Vec<String> = Vec::new();
     let mut ingredient_quantity_vec: Vec<u32> = Vec::new();
 
-    for ingredient_id in ingredient_ids_iter {
+    for ingredient_id in ingredient_id_iter {
         let ingredient_id = ingredient_id?;
         let ingredient_name: String = conn.query_row(
             "SELECT name FROM ingredients WHERE id = ?1;",
