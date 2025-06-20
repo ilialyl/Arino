@@ -1,13 +1,10 @@
 use rusqlite::Result;
 
-use crate::{
-    cli::{commands, user_input::prompt},
-    database::{cloud::push, get},
-};
+use crate::cli::{commands, prompt};
 
 use super::{
-    cloud::{fetch, has_internet_access, Database},
-    get_connection,
+    cloud::{fetch, has_internet_access, push, Database},
+    get, get_connection,
 };
 
 // Fetches the database from Cloud and deletes an ingredient of choice from a recipe.

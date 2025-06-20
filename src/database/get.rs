@@ -1,6 +1,6 @@
 use rusqlite::Connection;
 
-use crate::{cli::user_input::prompt, miscellaneous::calculate_mean};
+use crate::{cli::prompt, miscellaneous::calculate_mean};
 
 // Gets dish ID from dish name
 pub fn dish_id(dish: &str, conn: &Connection) -> Option<u32> {
