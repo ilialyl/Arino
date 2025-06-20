@@ -3,7 +3,7 @@ use rusqlite::Result;
 use crate::{cli::commands, database::cloud::push};
 
 use super::{
-    cloud::{fetch, has_internet_access, Database},
+    cloud::{Database, fetch, has_internet_access},
     get, get_connection, show,
 };
 

@@ -85,8 +85,8 @@ pub async fn dish(args: &commands::DeleteDishArgs) -> Result<()> {
         return Ok(());
     }
 
-    let mut delete_recipe_stmt = conn.prepare("DELETE FROM recipes WHERE dish_id = ?1")?;
-    delete_recipe_stmt.execute([dish_id])?;
+    let mut delete_stmt = conn.prepare("DELETE FROM recipes WHERE dish_id = ?1")?;
+    delete_stmt.execute([dish_id])?;
 
     let mut delete_dish_stmt = conn.prepare("DELETE FROM dishes WHERE id = ?1")?;
     delete_dish_stmt.execute([dish_id])?;

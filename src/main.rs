@@ -5,7 +5,7 @@ pub mod miscellaneous;
 use clap::Parser;
 use cli::commands::Cli;
 use database::{
-    cloud::{has_internet_access, Database},
+    cloud::{Database, has_internet_access},
     database_exists,
 };
 use tokio;

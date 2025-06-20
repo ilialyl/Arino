@@ -1,6 +1,6 @@
 use crate::cli::commands;
 use crate::database::{
-    cloud::{fetch, has_internet_access, push, Database},
+    cloud::{Database, fetch, has_internet_access, push},
     get_connection,
 };
 use rusqlite::Result;
