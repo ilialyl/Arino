@@ -4,8 +4,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io;
-use std::io::Read;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::time::Duration;
 
 use crate::miscellaneous::flush;
@@ -24,7 +23,7 @@ struct TokenResponse {
 
 // Credentials struct containing client id, secret key, and refresh token.
 #[derive(Deserialize)]
-struct Credentials {
+pub struct Credentials {
     client_id: String,
     client_secret: String,
     refresh_token: String,
@@ -312,7 +311,7 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
 }
 
 // Retrieves credientials from a file.
-fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
+pub fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
     let json_string = fs::read_to_string("dropbox_credentials.json");
     let json_string = match json_string {
         Ok(s) => s,
@@ -326,4 +325,8 @@ fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
     let parsed: Credentials = serde_json::from_str(&json_string).unwrap();
 
     Ok(parsed)
+}
+
+pub fn download_database() {
+    // do to
 }
