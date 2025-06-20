@@ -2,7 +2,7 @@ pub mod dish_by_ingredients;
 use crate::cli_operations::commands;
 
 use crate::database::Category;
-use crate::helper::calculate_mean;
+use crate::miscellaneous::calculate_mean;
 use prettytable::{Cell, Row, Table};
 use rusqlite::Result;
 

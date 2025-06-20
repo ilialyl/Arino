@@ -1,8 +1,8 @@
-use crate::helper::flush;
+use crate::miscellaneous::flush;
 use std::io::stdin;
 
 // Splits a string to a vector depending on what the separator is.
-pub fn split_to_vec(separator: &str, user_input: String) -> Vec<String>{
+pub fn split_to_vec(separator: &str, user_input: String) -> Vec<String> {
     let split_iter = user_input.split(separator);
     let separated_inputs_vec: Vec<String> = split_iter.map(|s| s.trim().to_string()).collect();
 
@@ -19,6 +19,6 @@ pub fn prompt(prompt: &str) -> String {
         Err(e) => {
             eprint!("{e}");
             return user_input;
-        },
+        }
     }
 }

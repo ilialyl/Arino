@@ -1,7 +1,7 @@
-pub mod user_input;
 pub mod commands;
+pub mod user_input;
 
-use crate::helper::flush;
+use crate::miscellaneous::flush;
 
 // Flushes the input stream and prints cancel message
 pub fn cancel_prompt() {

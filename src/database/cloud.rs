@@ -1,19 +1,19 @@
 use reqwest::Client;
+use serde::Deserialize;
+use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
-use std::io::Read;
 use std::io;
+use std::io::Read;
 use std::io::Write;
 use std::time::Duration;
-use std::collections::HashMap;
-use serde::Deserialize;
 
-use crate::helper::flush;
+use crate::miscellaneous::flush;
 
 // Database sync types
 pub enum Database {
     Main,
-    Backup
+    Backup,
 }
 
 // Token Response struct containing a string of access token.
@@ -43,7 +43,7 @@ pub async fn push() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     };
 
     let file_path = "database.db";
@@ -61,7 +61,13 @@ pub async fn push() -> Result<(), Box<dyn std::error::Error>> {
     let response = client
         .post("https://content.dropboxapi.com/2/files/upload")
         .header("Authorization", format!("Bearer {}", access_token))
-        .header("Dropbox-API-Arg", format!(r#"{{"path": "{}","mode": "overwrite","autorename": false,"mute": false}}"#, destination_path))
+        .header(
+            "Dropbox-API-Arg",
+            format!(
+                r#"{{"path": "{}","mode": "overwrite","autorename": false,"mute": false}}"#,
+                destination_path
+            ),
+        )
         .header("Content-Type", "application/octet-stream")
         .body(file_content)
         .send()
@@ -90,9 +96,9 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     };
-    
+
     // Paths to files
     let file_path = "database.db";
     let destination_path = "/database_backup.db"; // Where to upload in Dropbox
@@ -137,12 +143,12 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => {
             eprintln!("{e}");
             return Ok(());
-        },
+        }
     };
 
     let dropbox_path = match source {
         Database::Main => "/database.db",
-        Database::Backup => "/database_backup.db"
+        Database::Backup => "/database_backup.db",
     };
 
     // Sets up the request client
@@ -152,7 +158,10 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     let response = client
         .post("https://content.dropboxapi.com/2/files/download")
         .header("Authorization", format!("Bearer {}", access_token))
-        .header("Dropbox-API-Arg", format!(r#"{{"path": "{}"}}"#, dropbox_path))
+        .header(
+            "Dropbox-API-Arg",
+            format!(r#"{{"path": "{}"}}"#, dropbox_path),
+        )
         .send()
         .await?;
 
@@ -170,7 +179,7 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-// Checks if the client has internet access. 
+// Checks if the client has internet access.
 pub async fn has_internet_access() -> bool {
     let client = Client::new();
     let url = "https://www.google.com";
@@ -180,7 +189,7 @@ pub async fn has_internet_access() -> bool {
         Err(_) => {
             println!("Error: Internet access is needed");
             false
-        },
+        }
     }
 }
 
@@ -190,14 +199,14 @@ async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
         Ok(c) => c,
         Err(e) => {
             eprint!("Creditial not found: {e}");
-            return Ok(())
-        },
+            return Ok(());
+        }
     };
 
     let client_id = credentials.client_id;
     let client_secret = credentials.client_secret;
     let refresh_token = credentials.refresh_token;
-    
+
     // Dropbox token endpoint
     let token_url = "https://api.dropboxapi.com/oauth2/token";
 
@@ -212,11 +221,7 @@ async fn request_access_token() -> Result<(), Box<dyn std::error::Error>> {
     let client = Client::new();
 
     // Sends the request to Dropbox API
-    let response = client
-        .post(token_url)
-        .form(&params)
-        .send()
-        .await?;
+    let response = client.post(token_url).form(&params).send().await?;
 
     // Handles response based on status code
     let status = response.status();
@@ -242,7 +247,7 @@ fn store_access_token(access_token: String) {
     };
 
     match std::fs::write("access_token.json", json_string) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(e) => eprintln!("Error storing access token: {e}"),
     }
 }
@@ -253,8 +258,11 @@ fn retrieve_access_token() -> Result<String, Box<dyn std::error::Error>> {
     let json_string = match json_string {
         Ok(s) => s,
         Err(_) => {
-            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "stored access token not found")));
-        },
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::NotFound,
+                "stored access token not found",
+            )));
+        }
     };
     let parsed: String = serde_json::from_str(&json_string).unwrap();
 
@@ -282,7 +290,7 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
     // Sends the request with the access token
     let response = client
         .post(url)
-        .bearer_auth(access_token)  // Use the access token for authorization
+        .bearer_auth(access_token) // Use the access token for authorization
         .send()
         .await?;
 
@@ -291,7 +299,7 @@ async fn check_access_token_validity() -> Result<bool, Box<dyn std::error::Error
         eprint!("Using old access token...");
         flush();
         print!("\r");
-        Ok(true)  // Token is valid
+        Ok(true) // Token is valid
     } else if response.status().as_u16() == 401 {
         eprint!("Using new access token...");
         flush();
@@ -309,11 +317,13 @@ fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
     let json_string = match json_string {
         Ok(s) => s,
         Err(_) => {
-            return Err(Box::new(io::Error::new(io::ErrorKind::NotFound, "key not found")));
-        },
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::NotFound,
+                "key not found",
+            )));
+        }
     };
     let parsed: Credentials = serde_json::from_str(&json_string).unwrap();
 
     Ok(parsed)
 }
-

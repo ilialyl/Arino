@@ -1,6 +1,6 @@
 pub mod cli_operations;
 pub mod database;
-pub mod helper;
+pub mod miscellaneous;
 
 use clap::Parser;
 use cli_operations::commands::Cli;
