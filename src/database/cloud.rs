@@ -328,5 +328,5 @@ pub fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
 }
 
 pub fn download_database() {
-    // do to
+    // to-do
 }
