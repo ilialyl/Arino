@@ -1,6 +1,7 @@
 use crate::database::{
-    cloud::{backup, fetch, has_internet_access, push, Database},
-    delete, insert, modify, show, Category,
+    Category,
+    cloud::{Database, backup, fetch, has_internet_access, push},
+    delete, insert, modify, show,
 };
 
 use clap::{Args, CommandFactory, Parser, Subcommand};
@@ -10,7 +11,7 @@ use std::io;
 
 #[derive(Parser)]
 #[command(name = "arino")]
-#[command(about = "placeholder", long_about = None)]
+#[command(about = "A CLI food inventory management tool.", long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Command,
