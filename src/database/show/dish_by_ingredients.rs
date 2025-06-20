@@ -2,7 +2,7 @@ use prettytable::{Cell, Row, Table};
 use rusqlite::{Connection, Result};
 use std::collections::{HashMap, HashSet};
 
-use crate::{cli_operations::commands, database::get_connection};
+use crate::{cli::commands, database::get_connection};
 
 pub fn get_dishes(args: &commands::IHaveArgs) -> Result<()> {
     let conn = get_connection();

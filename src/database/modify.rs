@@ -1,6 +1,6 @@
 use rusqlite::Result;
 
-use crate::{cli_operations::commands, database::cloud::push};
+use crate::{cli::commands, database::cloud::push};
 
 use super::{
     cloud::{fetch, has_internet_access, Database},

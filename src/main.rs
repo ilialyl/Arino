@@ -1,9 +1,9 @@
-pub mod cli_operations;
+pub mod cli;
 pub mod database;
 pub mod miscellaneous;
 
 use clap::Parser;
-use cli_operations::commands::Cli;
+use cli::commands::Cli;
 use database::{
     cloud::{has_internet_access, Database},
     database_exists,

@@ -1,5 +1,5 @@
 pub mod dish_by_ingredients;
-use crate::cli_operations::commands;
+use crate::cli::commands;
 
 use crate::database::Category;
 use crate::miscellaneous::calculate_mean;

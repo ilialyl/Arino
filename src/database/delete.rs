@@ -1,7 +1,7 @@
 use rusqlite::Result;
 
 use crate::{
-    cli_operations::{commands, user_input::prompt},
+    cli::{commands, user_input::prompt},
     database::{cloud::push, get},
 };
 

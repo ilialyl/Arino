@@ -1,4 +1,4 @@
-use crate::cli_operations::commands;
+use crate::cli::commands;
 use crate::database::{
     cloud::{fetch, has_internet_access, push, Database},
     get_connection,
