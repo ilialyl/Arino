@@ -1,6 +1,8 @@
-use std::{fs, fs::File, io::Write};
+use std::{fs::File, io::Write};
 
 use serde::{Deserialize, Serialize};
+
+use crate::database::cloud::get_credentials;
 
 #[derive(Serialize, Deserialize)]
 pub struct Config {
@@ -16,8 +18,14 @@ pub fn save_config(config: &Config) -> std::io::Result<()> {
 }
 
 pub fn load_config() -> Config {
-    fs::read_to_string("user_config.json")
-        .ok()
-        .and_then(|s| serde_json::from_str(&s).ok())
-        .unwrap_or(Config { has_access: false })
+    match std::fs::read_to_string("user_config.json") {
+        Ok(s) => return serde_json::from_str(&s).expect("Error parsing user_config.json"),
+        Err(_) => {
+            if get_credentials().is_err() {
+                return Config { has_access: false };
+            } else {
+                return Config { has_access: true };
+            }
+        }
+    };
 }

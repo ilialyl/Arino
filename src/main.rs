@@ -26,6 +26,7 @@ async fn main() {
         let config: Config;
 
         if get_credentials().is_err() {
+            println!("You are using an offline version as you do not have access");
             config = Config { has_access: false };
             download_database().await;
         } else {
@@ -37,7 +38,7 @@ async fn main() {
         }
 
         save_config(&config).expect("Failed to save config");
-    } else {
+    } else if !database_exists() & !has_internet_access().await {
         eprintln!("Internet access is required to fetch database for first use!");
     }
 

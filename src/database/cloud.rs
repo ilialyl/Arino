@@ -7,6 +7,8 @@ use std::io;
 use std::io::{Read, Write};
 use std::time::Duration;
 
+use crate::CONFIG;
+use crate::database::database_exists;
 use crate::miscellaneous::flush;
 
 // Database sync types
@@ -31,6 +33,9 @@ pub struct Credentials {
 
 // Pushes the database to Cloud as main
 pub async fn push() -> Result<(), Box<dyn std::error::Error>> {
+    if !CONFIG.has_access {
+        return Ok(());
+    }
     // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
@@ -133,6 +138,10 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
 
 // Fetches the database file from Cloud.
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
+    if !CONFIG.has_access {
+        return Ok(());
+    }
+
     // Checks if the access token is valid, and refreshes it if necessary
     if !check_access_token_validity().await? {
         request_access_token().await?;
@@ -180,6 +189,10 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
 
 // Checks if the client has internet access.
 pub async fn has_internet_access() -> bool {
+    if database_exists() & !CONFIG.has_access {
+        return true;
+    }
+
     let client = Client::new();
     let url = "https://www.google.com";
 

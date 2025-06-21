@@ -1,7 +1,10 @@
-use crate::database::{
-    Category,
-    cloud::{Database, backup, fetch, has_internet_access, push},
-    delete, insert, modify, show,
+use crate::{
+    CONFIG,
+    database::{
+        Category,
+        cloud::{Database, backup, fetch, has_internet_access, push},
+        delete, insert, modify, show,
+    },
 };
 
 use clap::{Args, CommandFactory, Parser, Subcommand};
@@ -235,6 +238,13 @@ impl Command {
             Command::DeleteDish(args) => delete::dish(args).await,
             Command::DeleteIngredient(args) => delete::ingredient(args).await,
             Command::Pull(_args) => {
+                if !CONFIG.has_access {
+                    println!(
+                        "You cannot pull as you are using the offline version. If you need a new database, you can do so by deleting the database.db file"
+                    );
+                    return Ok(());
+                }
+
                 if has_internet_access().await {
                     fetch(Database::Main)
                         .await
@@ -245,6 +255,11 @@ impl Command {
                 Ok(())
             }
             Command::Push(_args) => {
+                if !CONFIG.has_access {
+                    println!("You cannot push as you are using the offline version.");
+                    return Ok(());
+                }
+
                 if has_internet_access().await {
                     push().await.expect("Error syncing database");
                 } else {
@@ -253,6 +268,13 @@ impl Command {
                 Ok(())
             }
             Command::Backup(_args) => {
+                if !CONFIG.has_access {
+                    println!(
+                        "You cannot back up to Cloud as you are using the offline version of the app"
+                    );
+                    return Ok(());
+                }
+
                 if has_internet_access().await {
                     backup().await.expect("Error backing up database");
                 } else {
