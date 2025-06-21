@@ -327,6 +327,12 @@ pub fn get_credentials() -> Result<Credentials, Box<dyn std::error::Error>> {
     Ok(parsed)
 }
 
-pub fn download_database() {
-    // to-do
+pub async fn download_database() {
+    let response = reqwest::get(
+        "https://www.dropbox.com/scl/fi/nfjsio3pr33ppwzp0c46u/database.db?rlkey=z84k05kfed2clj5ri9621q57w&st=94yvl88v&dl=1",
+    ).await.expect("Download failed");
+    let db = response.bytes().await.expect("File invalid");
+
+    let mut file = File::create("database.db").expect("Failed to create file");
+    file.write_all(&db).expect("Failed to write into file");
 }
