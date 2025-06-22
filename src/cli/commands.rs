@@ -294,5 +294,5 @@ impl Command {
 
 fn print_completions() {
     let mut cmd = Cli::command();
-    generate(Bash, &mut cmd, "target/release/arino", &mut io::stdout());
+    generate(Bash, &mut cmd, "arino", &mut io::stdout());
 }
