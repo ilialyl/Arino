@@ -1,4 +1,5 @@
 use crate::{
+    cli::Platform,
     client::has_access,
     database::{
         Category,
@@ -8,7 +9,7 @@ use crate::{
 };
 
 use clap::{Args, CommandFactory, Parser, Subcommand};
-use clap_complete::{generate, shells::Bash};
+use clap_complete::{aot::PowerShell, generate, shells::Bash};
 use rusqlite::Result;
 use std::io;
 
@@ -40,7 +41,7 @@ pub enum Command {
     Backup(BackupArgs),
     UpdateIngredient(UpdateIngredientArgs),
     UpdateDishName(UpdateDishNameArgs),
-    Completion,
+    Completion(CompletionArgs),
 }
 
 #[derive(Args)]
@@ -223,6 +224,16 @@ pub struct UpdateDishNameArgs {
     pub new_name: String,
 }
 
+#[derive(Args)]
+pub struct CompletionArgs {
+    #[arg(
+        short = 'p',
+        long = "platform",
+        help = "Platform to generate autocompletion for"
+    )]
+    pub platform: Platform,
+}
+
 impl Command {
     pub async fn execute(&self) -> Result<()> {
         match self {
@@ -284,15 +295,18 @@ impl Command {
             }
             Command::UpdateIngredient(args) => modify::ingredient(args).await,
             Command::UpdateDishName(args) => modify::dish_name(args).await,
-            Command::Completion => {
-                print_completions();
+            Command::Completion(args) => {
+                print_completions(args);
                 Ok(())
             }
         }
     }
 }
 
-fn print_completions() {
+fn print_completions(args: &CompletionArgs) {
     let mut cmd = Cli::command();
-    generate(Bash, &mut cmd, "arino", &mut io::stdout());
+    match args.platform {
+        Platform::Bash => generate(Bash, &mut cmd, "arino", &mut io::stdout()),
+        Platform::Powershell => generate(PowerShell, &mut cmd, "arino", &mut io::stdout()),
+    };
 }

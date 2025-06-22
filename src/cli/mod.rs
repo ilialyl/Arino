@@ -14,3 +14,9 @@ pub fn prompt(prompt: &str) -> String {
         }
     }
 }
+
+#[derive(clap::ValueEnum, Clone)]
+pub enum Platform {
+    Powershell,
+    Bash,
+}
