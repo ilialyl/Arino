@@ -18,7 +18,8 @@ A self-use **CLI** application capable of storing entries of dish recipes and th
 
 ## Usage Instruction
 ### Linux (Bash)
-1. Download `arino` from release
+0. Install Rust -> https://www.rust-lang.org/tools/install
+1. Clone this repository
 2. cd to the directory Arino resides and run
 ```
 # Generate Arino Bash autocompletion
