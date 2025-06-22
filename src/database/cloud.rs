@@ -7,7 +7,7 @@ use std::io;
 use std::io::{Read, Write};
 use std::time::Duration;
 
-use crate::CONFIG;
+use crate::client::has_access;
 use crate::database::database_exists;
 use crate::miscellaneous::flush;
 
@@ -33,7 +33,7 @@ pub struct Credentials {
 
 // Pushes the database to Cloud as main
 pub async fn push() -> Result<(), Box<dyn std::error::Error>> {
-    if !CONFIG.has_access {
+    if !has_access() {
         return Ok(());
     }
     // Checks if the access token is valid, and refreshes it if necessary
@@ -138,7 +138,7 @@ pub async fn backup() -> Result<(), Box<dyn std::error::Error>> {
 
 // Fetches the database file from Cloud.
 pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
-    if !CONFIG.has_access {
+    if !has_access() {
         return Ok(());
     }
 
@@ -189,7 +189,7 @@ pub async fn fetch(source: Database) -> Result<(), Box<dyn std::error::Error>> {
 
 // Checks if the client has internet access.
 pub async fn has_internet_access() -> bool {
-    if database_exists() & !CONFIG.has_access {
+    if database_exists() & !has_access() {
         return true;
     }
 

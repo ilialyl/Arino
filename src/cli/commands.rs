@@ -1,5 +1,5 @@
 use crate::{
-    CONFIG,
+    client::has_access,
     database::{
         Category,
         cloud::{Database, backup, fetch, has_internet_access, push},
@@ -238,7 +238,7 @@ impl Command {
             Command::DeleteDish(args) => delete::dish(args).await,
             Command::DeleteIngredient(args) => delete::ingredient(args).await,
             Command::Pull(_args) => {
-                if !CONFIG.has_access {
+                if !has_access() {
                     println!(
                         "You cannot pull as you are using the offline version. If you need a new database, you can do so by deleting the database.db file"
                     );
@@ -255,7 +255,7 @@ impl Command {
                 Ok(())
             }
             Command::Push(_args) => {
-                if !CONFIG.has_access {
+                if !has_access() {
                     println!("You cannot push as you are using the offline version.");
                     return Ok(());
                 }
@@ -268,7 +268,7 @@ impl Command {
                 Ok(())
             }
             Command::Backup(_args) => {
-                if !CONFIG.has_access {
+                if !has_access() {
                     println!(
                         "You cannot back up to Cloud as you are using the offline version of the app"
                     );
