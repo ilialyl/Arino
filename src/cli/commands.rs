@@ -306,7 +306,7 @@ impl Command {
 fn print_completions(args: &CompletionArgs) {
     let mut cmd = Cli::command();
     match args.platform {
-        Platform::Bash => generate(Bash, &mut cmd, "arino", &mut io::stdout()),
-        Platform::Powershell => generate(PowerShell, &mut cmd, "arino", &mut io::stdout()),
+        Platform::Bash => generate(Bash, &mut cmd, "./arino", &mut io::stdout()),
+        Platform::Powershell => generate(PowerShell, &mut cmd, ".\\arino.exe", &mut io::stdout()),
     };
 }
