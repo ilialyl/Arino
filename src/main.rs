@@ -16,7 +16,15 @@ use crate::{client::has_access, database::cloud::download_database};
 
 #[tokio::main]
 async fn main() {
-    if !database_exists() & has_internet_access().await {
+    let (db_exists, has_internet) = tokio::join!(
+        async {
+            let result = database_exists();
+            result
+        },
+        has_internet_access(),
+    );
+
+    if !db_exists && has_internet {
         if has_access() {
             match database::cloud::fetch(Database::Main).await {
                 Ok(_) => {}
@@ -26,7 +34,7 @@ async fn main() {
             println!("You are using an offline version as you do not have access");
             download_database().await;
         }
-    } else if !database_exists() & !has_internet_access().await {
+    } else if !db_exists && !has_internet {
         eprintln!("Internet access is required to fetch database for first use!");
     }
 
