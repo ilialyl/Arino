@@ -22,3 +22,6 @@ Cargo.lock
 
 dropbox_credentials.json
 access_token.json
+
+arino
+arino.bash
